@@ -99,6 +99,7 @@ if ($mode === 'source') {
         'scripts',
         'tests',
         'frontend/tests',
+        '.github/workflows',
         '.gitattributes',
         '.gitignore',
         'README.md',

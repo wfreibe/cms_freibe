@@ -1,0 +1,88 @@
+name: Test and deploy
+on:
+  push:
+    branches: [master, development, acceptance, codex/local-cms]
+  pull_request:
+    branches: [master, development, acceptance]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: cms-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, mbstring, dom, gd, zip, sodium
+          coverage: none
+          tools: composer:v2
+      - name: Install locked dependencies
+        run: |
+          npm ci
+          npm --prefix frontend ci
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+      - name: Test with isolated content database
+        shell: bash
+        run: |
+          set -euo pipefail
+          export CMS_CONFIG_PATH="$RUNNER_TEMP/cms-ci/config.php"
+          export CMS_DB_PATH="$RUNNER_TEMP/cms-ci/content.sqlite"
+          export CMS_BACKUP_DIR="$RUNNER_TEMP/cms-ci/backups"
+          mkdir -p "$RUNNER_TEMP/cms-ci/sessions" "$CMS_BACKUP_DIR"
+          printf '%s\n' "<?php return ['db_path'=>getenv('CMS_DB_PATH'),'backup_dir'=>getenv('CMS_BACKUP_DIR'),'session_save_path'=>__DIR__.'/sessions','cookie_secure'=>false];" > "$CMS_CONFIG_PATH"
+          php bin/migrate.php
+          php bin/import_design.php
+          npm run dev > "$RUNNER_TEMP/cms-dev.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3011/api/ready > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:3011/api/ready
+          npm test
+          node tests/test_deployment.js
+          bash -n scripts/deploy.sh scripts/deploy_remote.sh
+      - name: Build and audit deployment package
+        run: npm run package:deploy
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: deployment-${{ github.sha }}
+          path: dist-packages/cms_sfreibe-deploy.zip
+          retention-days: 14
+          if-no-files-found: error
+  production:
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://freiberger.design
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: deployment-${{ github.sha }}
+          path: dist-packages
+      - name: Deploy verified application without deleting runtime data
+        shell: bash
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ vars.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          DEPLOY_PHP: ${{ vars.DEPLOY_PHP }}
+          DEPLOY_URL: https://freiberger.design
+          RELEASE_ID: ${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+        run: bash scripts/deploy.sh

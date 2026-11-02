@@ -19,7 +19,7 @@ function expected(mode) {
   const result=new Map();
   const add=(p,zipPath=p)=>filesWithin(p,zipPath,result);
   if(mode==='source') {
-    for(const p of ['bin','AGENTS.md','config/cms_config.sample.php','docs','frontend/src','frontend/public','frontend/index.html','frontend/package.json','frontend/package-lock.json','frontend/vite.config.js','lib','migrations','seeds','scripts','tests','frontend/tests','.gitattributes','.gitignore','README.md','package.json','package-lock.json','composer.json','composer.lock','data/.gitkeep','data/.htaccess']) add(p);
+    for(const p of ['bin','AGENTS.md','config/cms_config.sample.php','docs','frontend/src','frontend/public','frontend/index.html','frontend/package.json','frontend/package-lock.json','frontend/vite.config.js','lib','migrations','seeds','scripts','tests','frontend/tests','.github/workflows','.gitattributes','.gitignore','README.md','package.json','package-lock.json','composer.json','composer.lock','data/.gitkeep','data/.htaccess']) add(p);
   } else if(mode==='deploy') {
     add('frontend/dist','webroot');
     for(const p of ['lib','bin','migrations','seeds','config/cms_config.sample.php','vendor','docs','data/.gitkeep']) add(p,'server/'+p);
