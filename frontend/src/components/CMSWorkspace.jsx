@@ -51,7 +51,7 @@ export function CMSWorkspace({
 
   return (
     <div className="cms-workspace">
-      <aside className="cms-workspace-sidebar" aria-label="CMS-Navigation">
+      <aside className="cms-workspace-sidebar" aria-label="CMS-Navigation" tabIndex={0}>
         <div className="cms-workspace-brand">
           <strong>FREIBERGER<span style="color:#c7254e">.</span><span style="color:#4AD7D1">DESIGN</span></strong>
           <small>REDAKTIONSBEREICH</small>
@@ -78,7 +78,7 @@ export function CMSWorkspace({
           <div className="cms-workspace-breadcrumb">Workspace <span>/</span> <strong>FREIBERGER.DESIGN</strong></div>
           <div className="cms-workspace-top-actions">
             <button type="button" className="cms-workspace-site-link" onClick={onOpenWebsite}>Website ansehen <span aria-hidden="true">↗</span></button>
-            <span className="cms-workspace-avatar" aria-label="Administrator">SF</span>
+            <span className="cms-workspace-avatar" aria-label="Administrator">WF</span>
           </div>
         </header>
 
