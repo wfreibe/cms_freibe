@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-30",
+  "status": "local-technical-review-complete-hosting-not-verified",
+  "verified": [
+    "Public API does not create or refresh sessions",
+    "No localStorage/sessionStorage calls in frontend",
+    "11 current published sections checked: no embedded external resources",
+    "No public contact form; contact endpoints return 404",
+    "Same-origin images/fonts/CSS; native slideshows",
+    "Authenticated uploads persist immediately; removal does not delete files",
+    "Session timeout 30 minutes, maximum 8 hours",
+    "Failed login cleanup is request-triggered after 24 hours, not periodic"
+  ],
+  "userConfirmed": [
+    "DomainFactory hosting; this website is treated as a regular hosting customer"
+  ],
+  "unresolved": [
+    "Exact hosting product, current internal log retention and optional log copies",
+    "Webalizer/statistics configuration",
+    "DomainFactory AVV and current subprocessors/locations",
+    "Confirm continued Proton Mail use and any forwarding",
+    "Backup rotation and retention",
+    "Account removal and independent login-attempt cleanup policy"
+  ],
+  "sources": [
+    "https://www.df.eu/index.php?L=-1&id=914&no_cache=1",
+    "https://www.df.eu/fileadmin/media/doc/ADV_Kunden_Domainfactory.pdf",
+    "https://proton.me/de/legal/privacy",
+    "https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/adequacy-decisions_en",
+    "https://www.lda.bayern.de/de/kontakt.html",
+    "https://www.bfdi.bund.de/SharedDocs/Downloads/DE/Broschueren/INFO1.pdf?__blob=publicationFile&v=27"
+  ],
+  "publicTextScope": "Actual implemented functions only; deployment/provider verification remains internal"
+}

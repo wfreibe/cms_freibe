@@ -1,0 +1,1 @@
+-- Reserved legacy version. Content is installed only by the separate manual seed command.

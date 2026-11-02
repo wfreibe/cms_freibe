@@ -1,0 +1,41 @@
+:root {
+  /* HerzÜberKopf Color Palette (Extracted from reference & user uploaded sample) */
+  --color-primary: #001730;        /* Darker Berry / Plum tone from sample */
+  --color-primary-dark: #001730;   /* Deep berry contrast & hover */
+  --color-primary-light: #ffffff;  /* Very soft blush tint */
+  --color-accent: #c7254e;         /* Primary Brand Color #001730 */
+  --color-accent-soft: #f4f7f8;    /* Soft pastel blush background from sample */
+  --color-accent-hover: #001730;
+
+  /* Backward compatible variable mappings */
+  --color-green: #001730;
+  --color-green-dark: #001730;
+  --color-green-light: #ffffff;
+  --color-red: #001730;
+  --color-red-hover: #001730;
+  
+  --color-text: #001730;
+  --color-text-light: #001730;
+  --color-text-muted: #526875;
+
+  /* Background Colors (Lighter blush from sample for the main page) */
+  --color-bg: #ffffff;             /* Primary Page Background from uploaded sample */
+  --color-bg-soft: #f4f7f8;        /* Lighter blush tint */
+  --color-bg-card: #ffffff;        /* Pure white for crisp contrast on cards & inputs */
+  --color-border: #dce5e9;         /* Soft rose border */
+  --color-border-input: #8c9fa9;
+  
+  /* HerzÜberKopf Typography */
+  --font-family: Arial, 'Helvetica Neue', sans-serif;
+  --font-family-heading: Arial, 'Helvetica Neue', sans-serif;
+  --font-size-base: 16px;
+  --font-size-h1: 36px;
+  --font-size-h2: 28px;
+  --font-size-h3: 22px;
+  --line-height: 1.65;
+  
+  --header-height: 90px;
+  --container-width: 980px;
+  --transition-fast: 0.2s ease;
+  --shadow-header: 0 2px 14px rgba(145, 76, 94, 0.08);
+}

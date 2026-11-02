@@ -1,0 +1,3 @@
+FROM node:20-bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends php-cli php-sqlite3 php-xml php-mbstring php-curl php-zip composer poppler-utils git ca-certificates && rm -rf /var/lib/apt/lists/*
+WORKDIR /workspace

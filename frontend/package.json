@@ -1,0 +1,21 @@
+{
+  "name": "freiberger-design-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node ../scripts/check_build.js",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/raleway": "5.3.0",
+    "@fontsource/amatic-sc": "5.3.0",
+    "dompurify": "3.4.17",
+    "preact": "^10.25.4"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9.3",
+    "vite": "^6.1.0"
+  }
+}

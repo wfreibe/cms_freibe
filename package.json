@@ -1,0 +1,27 @@
+{
+  "name": "freiberger-design",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Lokale Webseite freiberger.design mit Preact und PHP/SQLite CMS",
+  "scripts": {
+    "dev:api": "php -S 127.0.0.1:8011 -t frontend/public frontend/public/api/api.php",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:frontend\"",
+    "build": "cd frontend && npm run build",
+    "verify-build": "node scripts/verify_build.js",
+    "migrate": "php bin/migrate.php",
+    "backup": "php bin/backup.php",
+    "test": "node tests/test_design.js && node tests/test_readiness.js && node tests/test_api_routing.js && node tests/test_dompurify.js && node tests/test_slideshow_editor.js && node tests/test_rich_text.js",
+    "package:source": "node scripts/package_source.js",
+    "package:deploy": "node scripts/package_deploy.js",
+    "prebuild": "node scripts/isolation_guard.js",
+    "test:isolation": "node tests/test_isolation_guard.js",
+    "test:repository": "node tests/test_repository_audit.js && node scripts/repository_audit.js",
+    "release": "node tests/verify_release.js",
+    "test:framework": "node tests/test_runner.js"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "jsdom": "26.1.0"
+  }
+}

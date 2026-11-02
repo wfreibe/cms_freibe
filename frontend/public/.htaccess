@@ -1,0 +1,10 @@
+Options -Indexes
+DirectoryIndex index.html
+RewriteEngine On
+# API requests must never fall through to the single-page application.
+RewriteRule ^api/api\.php$ - [L]
+RewriteRule ^api/(.*)$ api/api.php?__cms_route=$1 [QSA,L]
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+RewriteRule ^ index.html [L]

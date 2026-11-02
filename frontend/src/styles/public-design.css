@@ -1,0 +1,261 @@
+/* Public-page presentation inspired by the layered cards of the design reference.
+   Scope these rules to the website so the CMS dashboard keeps its own layout. */
+
+.site-header {
+  background: rgba(255, 255, 255, 0.97);
+  border-bottom-color: rgba(145, 76, 94, 0.16);
+  box-shadow: 0 4px 18px rgba(100, 53, 67, 0.06);
+}
+
+.site-header .header-main-row {
+  align-items: center;
+  min-height: 62px;
+}
+
+.site-header .header-logo-img {
+  width: 220px;
+  height: 124px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.site-header .nav-item a {
+  padding: 5px 0 7px;
+}
+
+.site-main .content-section {
+  padding: 60px 0 78px;
+  border-bottom-color: rgba(145, 76, 94, 0.1);
+  scroll-margin-top: 98px;
+}
+
+.site-main .content-section:first-of-type {
+  min-height: 750px;
+  padding-top: 54px;
+  background-position: center center;
+}
+
+.site-main .content-section:first-of-type.has-bg-image .section-bg-overlay {
+  background: linear-gradient(90deg, rgba(255, 248, 249, 0.18), rgba(255, 246, 248, 0.05));
+}
+
+.site-main .stage-container {
+  max-width: 910px;
+  padding: 0 16px;
+}
+
+.site-main .content-section:first-of-type .stage-container {
+  max-width: 1120px;
+}
+
+.site-main .stage-center-col {
+  position: relative;
+  width: 100%;
+  padding: 35px 34px 42px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 16px;
+  box-shadow:
+    11px 13px 0 rgba(244, 225, 233, 0.88),
+    20px 22px 0 rgba(232, 194, 209, 0.38),
+    0 19px 42px rgba(100, 52, 65, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: transform 260ms ease, box-shadow 260ms ease;
+}
+
+.site-main .content-section:nth-of-type(even) .stage-center-col {
+  box-shadow:
+    -11px 13px 0 rgba(244, 225, 233, 0.88),
+    -20px 22px 0 rgba(232, 194, 209, 0.38),
+    0 19px 42px rgba(100, 52, 65, 0.1);
+}
+
+.site-main .content-section:first-of-type .stage-center-col {
+  max-width: 810px;
+  padding: 42px 43px 48px;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.97), rgba(255, 252, 253, 0.91));
+}
+
+.site-main .section-header-wrap {
+  margin-bottom: 12px;
+}
+
+.site-main .section-title {
+  font-size: clamp(38px, 4vw, 48px);
+  line-height: 1.22;
+  letter-spacing: 1.9px;
+}
+
+.site-main .section-subtitle {
+  margin-top: 8px;
+  margin-bottom: 24px;
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--color-primary);
+}
+
+.site-main .section-body {
+  color: #51484b;
+  font-size: 16px;
+  line-height: 1.84;
+}
+
+.site-main .section-body p {
+  color: inherit;
+  margin-bottom: 24px;
+}
+
+.site-main .section-body li {
+  margin-bottom: 8px;
+}
+
+.site-main .section-body h4 {
+  margin-top: 25px;
+  margin-bottom: 8px;
+}
+
+.site-main .section-featured-image-wrap {
+  border-radius: 11px;
+  box-shadow: 0 12px 30px rgba(91, 51, 61, 0.13);
+}
+
+.site-main .section-accordions-wrapper {
+  margin-top: 29px;
+  gap: 16px;
+}
+
+.site-main .accordion-item {
+  border-radius: 9px;
+  box-shadow: 0 3px 0 rgba(229, 194, 207, 0.7), 0 9px 22px rgba(100, 52, 65, 0.07);
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.site-main .accordion-header {
+  min-height: 72px;
+  padding: 15px 20px;
+}
+
+.site-main .accordion-title {
+  font-size: 31px;
+}
+
+.site-main .accordion-body {
+  line-height: 1.75;
+}
+
+.site-main .contact-details-box {
+  border-radius: 10px;
+  padding: 28px 30px;
+  box-shadow: 7px 9px 0 rgba(240, 214, 224, 0.72), 0 15px 28px rgba(100, 52, 65, 0.08);
+}
+
+.site-footer {
+  background: #fffafc;
+  border-top-color: rgba(145, 76, 94, 0.15);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .site-main .stage-center-col:hover {
+    transform: translateY(-4px);
+  }
+
+  .site-main .accordion-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 rgba(229, 194, 207, 0.7), 0 13px 26px rgba(100, 52, 65, 0.11);
+  }
+}
+
+@media (max-width: 860px) {
+  .site-header .header-main-row {
+    min-height: 0;
+  }
+
+  .site-header .mobile-logo-link .header-logo-img {
+    width: 160px;
+    height: 90px;
+  }
+
+  .site-main .content-section,
+  .site-main .content-section:first-of-type {
+    min-height: 0;
+    padding: 36px 0 52px;
+    scroll-margin-top: 76px;
+  }
+
+  .site-main .stage-container,
+  .site-main .content-section:first-of-type .stage-container {
+    max-width: 100%;
+    padding: 0 22px;
+  }
+
+  .site-main .stage-center-col,
+  .site-main .content-section:first-of-type .stage-center-col {
+    max-width: 100%;
+    padding: 28px 26px 32px;
+    border-radius: 13px;
+    box-shadow: 6px 8px 0 rgba(244, 225, 233, 0.88), 12px 14px 0 rgba(232, 194, 209, 0.3);
+  }
+
+  .site-main .content-section:nth-of-type(even) .stage-center-col {
+    box-shadow: -6px 8px 0 rgba(244, 225, 233, 0.88), -12px 14px 0 rgba(232, 194, 209, 0.3);
+  }
+
+  .site-main .section-title {
+    font-size: clamp(32px, 6vw, 42px);
+  }
+
+  .site-main .section-body {
+    font-size: 15px;
+    line-height: 1.74;
+  }
+
+  .site-main .accordion-title {
+    font-size: 27px;
+  }
+}
+
+@media (max-width: 480px) {
+  .site-header .mobile-logo-link .header-logo-img {
+    width: 140px;
+    height: 79px;
+  }
+
+  .site-main .stage-container,
+  .site-main .content-section:first-of-type .stage-container {
+    padding: 0 17px;
+  }
+
+  .site-main .stage-center-col,
+  .site-main .content-section:first-of-type .stage-center-col {
+    padding: 24px 20px 27px;
+  }
+
+  .site-main .section-title {
+    font-size: 31px;
+  }
+
+  .site-main .section-subtitle {
+    font-size: 14px;
+  }
+
+  .site-main .accordion-header {
+    min-height: 63px;
+    padding: 12px 15px;
+  }
+
+  .site-main .accordion-title {
+    font-size: 23px;
+  }
+
+  .site-main .contact-details-box {
+    padding: 21px 19px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-main .stage-center-col,
+  .site-main .accordion-item {
+    transition: none;
+  }
+}

@@ -1,0 +1,36 @@
+'use strict';
+const assert=require('assert/strict');
+const {fs,path,root,baseEnv,run,php,temp,hash}=require('./helpers');
+const dir=temp();
+const env={...baseEnv,CMS_CONFIG_PATH:path.join(dir,'config.php'),CMS_DB_PATH:path.join(dir,'content.sqlite'),CMS_BACKUP_DIR:path.join(dir,'backups'),CMS_ENV:'test'};
+try {
+ fs.writeFileSync(env.CMS_CONFIG_PATH,'<?php return [];');
+ const oldMigrations=path.join(dir,'migrations');fs.mkdirSync(oldMigrations);
+ for(const name of fs.readdirSync(path.join(root,'migrations')).filter(n=>/^00[1-8]_/.test(n)))fs.copyFileSync(path.join(root,'migrations',name),path.join(oldMigrations,name));
+ run('php',['bin/migrate.php'],{env:{...env,CMS_MIGRATIONS_DIR:oldMigrations}});
+ run('php',['bin/seed.php','--confirm-seed'],{env});
+ run('php',['bin/provision_admin.php'],{env});
+ const data=()=>php("$d=new PDO('sqlite:'.getenv('CMS_DB_PATH'));$s=[];foreach(['sections','section_accordions','admin_credentials'] as $t)$s[$t]=$d->query('SELECT * FROM '.$t.($t==='admin_credentials'?'':\" WHERE lang!='fr'\"))->fetchAll(PDO::FETCH_ASSOC);echo json_encode($s);",env);
+ const before=data();
+ assert.throws(()=>run('php',['bin/import_french.php','--confirm-import'],{env}));
+ run('php',['bin/migrate.php'],{env});assert.equal(data(),before,'Migration changed existing records');
+ const migrated=hash(env.CMS_DB_PATH);
+ run('php',['bin/migrate.php'],{env});assert.equal(hash(env.CMS_DB_PATH),migrated);
+ assert.throws(()=>run('php',['bin/import_french.php'],{env}));assert.equal(hash(env.CMS_DB_PATH),migrated);
+ assert.throws(()=>run('php',['bin/import_french.php','--confirm-import'],{env:{...env,CMS_DB_PATH:''}}));
+ fs.writeFileSync(path.join(dir,'blocked-backups'),'not a directory');
+ assert.throws(()=>run('php',['bin/import_french.php','--confirm-import'],{env:{...env,CMS_BACKUP_DIR:path.join(dir,'blocked-backups')}}));
+ assert.equal(hash(env.CMS_DB_PATH),migrated,'Failed backup changed database');
+ assert.throws(()=>php("$d=new PDO('sqlite:'.getenv('CMS_DB_PATH'));$d->exec(\"INSERT INTO sections(id,lang,nav_label,title,content) VALUES('invalid','es','x','x','x')\");",env));
+ run('php',['bin/import_french.php','--confirm-import'],{env});assert.equal(data(),before);
+ const french=()=>JSON.parse(php("$d=new PDO('sqlite:'.getenv('CMS_DB_PATH'));echo json_encode([$d->query(\"SELECT * FROM sections WHERE lang='fr'\")->fetchAll(PDO::FETCH_ASSOC),$d->query(\"SELECT * FROM section_accordions WHERE lang='fr'\")->fetchAll(PDO::FETCH_ASSOC)]);",env));
+ let [sections,accordions]=french();assert.equal(sections.length,7);assert.equal(accordions.length,3);
+ assert([...sections,...accordions].every(r=>r.is_published===0&&r.is_active===0));
+ assert(sections.find(s=>s.id==='home').title.includes('enfants'));
+ php("$d=new PDO('sqlite:'.getenv('CMS_DB_PATH'));$d->exec(\"UPDATE sections SET title='Modification française',is_published=1,is_active=1 WHERE id='home' AND lang='fr'\");",env);
+ const edited=french();run('php',['bin/import_french.php','--confirm-import'],{env});assert.deepEqual(french(),edited);assert.equal(data(),before);
+ assert.equal(php("require 'lib/Validator.php';echo json_encode([Validator::validateLanguage('fr'),Validator::checkStrictLanguage('fr'),Validator::checkStrictLanguage('es')!==null]);",env),'["fr",null,true]');
+ const response=php("$_SERVER['REQUEST_METHOD']='GET';$_SERVER['REQUEST_URI']='/api/sections';$_GET=['lang'=>'fr'];require 'frontend/public/api/api.php';",env);
+ const publicRows=JSON.parse(response);assert.equal(publicRows.length,1);assert.equal(publicRows[0].title,'Modification française');assert.equal(publicRows[0].lang,'fr');
+ console.log('French passed: migration preserves content/admin, manual draft import, repeated import preserves edits, FR validation and public API reads.');
+} finally {fs.rmSync(dir,{recursive:true,force:true});}

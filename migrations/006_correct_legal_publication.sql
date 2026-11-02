@@ -1,0 +1,1 @@
+-- Reserved legacy version. Publication decisions belong to editors, not schema migrations.

@@ -1,0 +1,13 @@
+{
+  "/": "home",
+  "/aboutme": "aboutme",
+  "/contact": "contact",
+  "/project/L1_p": "project-l1_p",
+  "/project/F_m": "project-f_m",
+  "/project/Z_n": "project-z_n",
+  "/project/K_m": "project-k_m",
+  "/project/wh": "project-wh",
+  "/project/pc": "project-pc",
+  "/legalnotice": "legalnotice",
+  "/dsgvo": "dsgvo"
+}

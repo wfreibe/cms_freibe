@@ -1,0 +1,15 @@
+{
+    "name": "sandra-freiberger/cms-sfreibe",
+    "description": "Headless CMS & Single Page Application for Sandra Freiberger - Coaching for children and young people",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.1",
+        "ezyang/htmlpurifier": "^4.19"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "allow-plugins": {}
+    }
+}

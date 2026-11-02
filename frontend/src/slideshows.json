@@ -1,0 +1,166 @@
+{
+  "home": [
+    {
+      "options": {
+        "slide-duration": "3000",
+        "effect-speed": "2500",
+        "effect": "fade",
+        "kenburns": "true",
+        "show-loader": "true",
+        "preload": "false"
+      },
+      "images": {
+        "/media/a2c612566b80f015.jpeg": {
+          "caption": "Haus F, Maitenbeth",
+          "title": "Architektur"
+        },
+        "/media/e9899188dbb755e1.jpeg": {
+          "caption": "Haus L1, Poing",
+          "title": "Architektur"
+        },
+        "/media/6072a82652d698b1.jpeg": {
+          "caption": "Haus Z, Neufinsing",
+          "title": "Architektur"
+        },
+        "/media/2691dd89a5a4b239.jpeg": {
+          "caption": "peter-casagrande.de | wilhelm-holderied.de",
+          "title": "Webdevelopment"
+        }
+      }
+    }
+  ],
+  "aboutme": [],
+  "contact": [],
+  "project-l1_p": [
+    {
+      "options": {
+        "slide-duration": "2500",
+        "effect-speed": "2000",
+        "effect": "dissolve",
+        "show-loader": "true",
+        "fullscreen": "true"
+      },
+      "images": {
+        "/media/5d666268a8e09523.jpeg": {
+          "caption": "Ansicht Süd-Ost",
+          "title": "Haus L1, Poing"
+        },
+        "/media/481215dff3462283.jpeg": {
+          "caption": "Ansicht Nord-West",
+          "title": "Haus L1, Poing"
+        },
+        "/media/95becdd6f43bca36.jpg": {
+          "caption": "Ansicht Nord-Ost",
+          "title": "Haus L1, Poing"
+        },
+        "/media/20e0282d3730b769.jpeg": {
+          "caption": "Ansicht Nord-Ost\n",
+          "title": "Haus L1, Poing"
+        }
+      }
+    }
+  ],
+  "project-f_m": [
+    {
+      "options": {
+        "slide-duration": "2500",
+        "effect-speed": "2000",
+        "effect": "dissolve",
+        "show-loader": "true",
+        "fullscreen": "true"
+      },
+      "images": {
+        "/media/2110d73e4f338a2b.jpeg": {
+          "caption": "Ansicht Süd-West",
+          "title": "Haus F, Maitenbeth"
+        },
+        "/media/f587594a9e3559a3.jpg": {
+          "caption": "Ansicht Süd-Ost",
+          "title": "Haus F, Maitenbeth"
+        },
+        "/media/b1680c5c1e9830e5.jpeg": {
+          "caption": "Ansicht Nord-West",
+          "title": "Haus F, Maitenbeth"
+        }
+      }
+    }
+  ],
+  "project-z_n": [
+    {
+      "options": {
+        "slide-duration": "2500",
+        "effect-speed": "2000",
+        "effect": "dissolve",
+        "show-loader": "true",
+        "fullscreen": "true"
+      },
+      "images": {
+        "/media/c64a3e9560bdac98.jpg": {
+          "caption": "Ansicht Süd",
+          "title": "Haus Z, Neufinsing"
+        },
+        "/media/8e040cda0876bb40.jpg": {
+          "caption": "Ansicht Süd-West",
+          "title": "Haus Z, Neufinsing"
+        },
+        "/media/f15c7797cc799ef6.jpg": {
+          "caption": "Ansicht Süd",
+          "title": "Haus Z, Neufinsing"
+        }
+      }
+    }
+  ],
+  "project-k_m": [
+    {
+      "options": {
+        "slide-duration": "2500",
+        "effect-speed": "2000",
+        "effect": "dissolve",
+        "show-loader": "true",
+        "fullscreen": "true"
+      },
+      "images": {
+        "/media/14a194e31a478dca.jpg": {
+          "caption": "Ansicht Süd-Ost",
+          "title": "Haus K, Maitenbeth"
+        }
+      }
+    }
+  ],
+  "project-wh": [
+    {
+      "options": {
+        "slide-duration": "2500",
+        "effect-speed": "2000",
+        "effect": "dissolve",
+        "show-loader": "true",
+        "fullscreen": "true"
+      },
+      "images": {
+        "/media/0af5bf024aa7c171.jpg": {
+          "caption": "",
+          "title": "Webseite Wilhelm Holderied"
+        }
+      }
+    }
+  ],
+  "project-pc": [
+    {
+      "options": {
+        "slide-duration": "2500",
+        "effect-speed": "2000",
+        "effect": "dissolve",
+        "show-loader": "true",
+        "fullscreen": "true"
+      },
+      "images": {
+        "/media/ab91b9f697fbe972.jpg": {
+          "caption": "",
+          "title": "Webseite Peter Casagrande"
+        }
+      }
+    }
+  ],
+  "legalnotice": [],
+  "dsgvo": []
+}

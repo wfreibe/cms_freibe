@@ -1,0 +1,15 @@
+# Disable directory browsing
+Options -Indexes
+
+DirectoryIndex api.php index.php
+
+# Protect any accidental files
+<FilesMatch "^\.|\.(sqlite|db|sql|log|env|ini|bak|shm|wal|md)$">
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+</FilesMatch>
