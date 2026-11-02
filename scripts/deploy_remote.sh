@@ -23,7 +23,7 @@ history="$base/.deploy/history/$release"
 test ! -e "$stage"
 test ! -e "$history"
 mkdir -p "$stage" "$history"
-printf 'Require all denied\n' > "$stage/.htaccess"
+printf 'Require all denied\n' > "$base/.deploy/.htaccess"
 # Only audited application files may enter the deployment staging directory.
 "$php" -r '
 $zip = new ZipArchive();
@@ -55,7 +55,7 @@ fi
 # Keep a complete application snapshot; runtime data and configuration stay private in place.
 tar -cf "$history/application.tar" --exclude='server/data' --exclude='server/backups' --exclude='server/config' -C "$base" webroot server
 # No --delete: existing data and extra host files must remain untouched.
-rsync -rlt --delay-updates --backup --backup-dir="$history/replaced-files" --exclude='/server/data/***' --exclude='/server/backups/***' --exclude='/server/config/cms_config.php' "$stage/" "$base/"
+rsync -rltp --chmod=D755,F644 --delay-updates --backup --backup-dir="$history/replaced-files" --exclude='/server/data/***' --exclude='/server/backups/***' --exclude='/server/config/cms_config.php' "$stage/" "$base/"
 "$php" "$base/server/bin/migrate.php"
 "$php" -r 'require $argv[1]."/server/lib/Readiness.php"; exit(Readiness::status() === 200 ? 0 : 1);' "$base"
 printf '%s\n' "$release" > "$history/complete"
