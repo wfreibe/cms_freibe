@@ -21,7 +21,7 @@ printf '%s\n' "$DEPLOY_KEY" > "$keydir/key"
 printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$keydir/known_hosts"
 chmod 600 "$keydir/key" "$keydir/known_hosts"
 unset DEPLOY_KEY DEPLOY_KNOWN_HOSTS
-ssh_options=(-i "$keydir/key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$keydir/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -m hmac-sha2-256-etm@openssh.com)
+ssh_options=(-i "$keydir/key" -o IdentitiesOnly=yes -o BatchMode=yes -o StrictHostKeyChecking=yes -o "UserKnownHostsFile=$keydir/known_hosts" -o ConnectTimeout=20 -o ServerAliveInterval=15 -o ServerAliveCountMax=3 -o MACs=hmac-sha2-256-etm@openssh.com)
 target="$DEPLOY_USER@$DEPLOY_HOST"
 # Validate remote PHP and existing live data before uploading any application files.
 ssh "${ssh_options[@]}" "$target" "test -d '$DEPLOY_PATH/webroot' && test -f '$DEPLOY_PATH/server/data/content.sqlite' && '$DEPLOY_PHP' -r 'exit(PHP_VERSION_ID >= 80200 && extension_loaded(\"pdo_sqlite\") && extension_loaded(\"mbstring\") && extension_loaded(\"gd\") && extension_loaded(\"zip\") ? 0 : 1);' && umask 077 && mkdir -p '$DEPLOY_PATH/.deploy/packages'"
