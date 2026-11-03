@@ -2,11 +2,12 @@
 
 Workflow: .github/workflows/deploy.yml.
 
-- Push auf codex/local-cms, development oder acceptance: Tests und Deployment-Artefakt.
+- Push auf development: Tests und Deployment-Artefakt.
 - Pull Requests: Tests und Build, kein Serverzugriff.
 - Push auf master oder manueller Workflow-Start auf master: nach erfolgreicher Prüfung Deployment auf freiberger.design.
 - Produktion verwendet das GitHub Environment production; nur master darf dessen Secrets verwenden.
-- Für development und acceptance sind noch keine eigenen Hostingziele eingerichtet. Sie greifen nicht auf Produktionsdaten zu.
+- GitHub enthält die Branches development und master. Entwicklung erfolgt in development; die Freigabe nach master löst das Produktionsdeployment aus.
+- Für development ist noch kein eigenes Hostingziel eingerichtet. Seine Tests greifen nicht auf Produktionsdaten zu.
 
 ## Einmalige Einrichtung
 

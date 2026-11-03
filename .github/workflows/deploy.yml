@@ -1,9 +1,9 @@
 name: Test and deploy
 on:
   push:
-    branches: [master, development, acceptance, codex/local-cms]
+    branches: [master, development]
   pull_request:
-    branches: [master, development, acceptance]
+    branches: [master, development]
   workflow_dispatch:
 permissions:
   contents: read
