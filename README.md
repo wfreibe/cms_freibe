@@ -1,61 +1,146 @@
-# freiberger.design – lokaler CMS-Aufbau
+# freiberger.design
 
-Technische Basis: cms_sfreibe (Preact/Vite, PHP 8.1+, PDO-SQLite, HTMLPurifier, DOMPurify). Bestehende Texte, Seitenadressen, Bilder und Semantic-UI/Bootstrap-Gestaltung stammen aus dem öffentlichen Stand vom 30.10.2026. Elf Seiten und 48 lokale Medien-/CSS-/Schriftdateien wurden übernommen. Die bisherige Slideshow läuft lokal ohne das proprietäre MagicSlideshow-Skript.
+Portfolio-Webseite mit eigenem, modular aufgebautem CMS für Architektur und Webdevelopment. Die Anwendung basiert auf `cms_sfreibe` und wurde für die Inhalte und Gestaltung von freiberger.design weiterentwickelt. Die Architekturleistungen umfassen LP 1–4.
 
-## Start
+- Öffentliche Webseite: [freiberger.design](https://freiberger.design)
+- Redaktionsbereich: [freiberger.design/cms](https://freiberger.design/cms)
+- Repository: [wfreibe/cms_freibe](https://github.com/wfreibe/cms_freibe)
 
-Im Projektordner: npm run dev
+## Technologie im Überblick
 
-- Webseite: http://127.0.0.1:3011/
-- CMS: http://127.0.0.1:3011/cms
-- PHP-API: http://127.0.0.1:8011/api/ready
+| Bereich | Technologie | Aufgabe |
+| --- | --- | --- |
+| Frontend | Preact 10, JavaScript und JSX | Öffentliche Webseite, CMS-Oberfläche und Inhaltsvorschau |
+| Entwicklung und Build | Vite 6, npm | Entwicklungsserver und produktive JavaScript-/CSS-Dateien |
+| Gestaltung | CSS, responsive Komponenten, lokal ausgelieferte Schriften | Portfolio-Layout und CMS-Bedienoberfläche |
+| Backend | PHP, JSON-API | Inhalte lesen und speichern, Anmeldung, Validierung und Medienauslieferung |
+| Datenbank | SQLite über PDO | Seiten, Inhaltselemente, Menüstruktur, Seitenadressen und Administratorzugang |
+| HTML-Bereinigung | DOMPurify im Browser, HTMLPurifier im Backend | Bereinigung formatierter Texte und übernommener HTML-Strukturen |
+| Bildverarbeitung | PHP GD | Prüfung, Dekodierung und Neukodierung von Bild-Uploads |
+| PHP-Abhängigkeiten | Composer | Installation der Backend-Bibliotheken |
+| Hosting und Deployment | DomainFactory, Apache/PHP, GitHub Actions, SSH und rsync | Automatische Prüfung und Veröffentlichung |
 
-Konfiguration, SQLite, Sessions und Backups sind von cms_sfreibe getrennt. Die aktive Konfiguration ist ausschließlich für lokales HTTP eingerichtet. Keine Veröffentlichung wurde eingerichtet oder ausgeführt.
+Node.js wird zum Entwickeln, Testen und Bauen benötigt. In Produktion laufen statische Frontend-Dateien und die PHP-API; dort wird kein Node.js- oder Vite-Prozess benötigt. Die CI verwendet Node.js 22 und PHP 8.3. Das Deployment setzt PHP ab 8.2 voraus und nutzt auf dem eingerichteten Server ausdrücklich `/usr/bin/php83`.
 
-## CMS-Zugang
+## Frontend
 
-php bin/provision_admin.php erstellt einen eigenen Administrator mit einmaligem Passwort. Der lokale Administrator admin wurde angelegt. Das Einmalpasswort steht in tmp/admin-bootstrap.txt (ignoriert durch Git). Nach erfolgreichem Passwortwechsel diese Datei entfernen. Das Passwort muss bei der ersten Anmeldung geändert werden. Der Provisionierungsbefehl überschreibt keinen vorhandenen Zugang.
+Die öffentliche Webseite und der Redaktionsbereich sind Komponenten derselben Preact-Anwendung. Die Inhalte werden über `/api` geladen. Öffentliche Seiten zeigen ausschließlich veröffentlichte Inhalte; die geschützte CMS-Vorschau kann auch Entwürfe darstellen.
 
-## Neuaufbau und Prüfung
+| Komponente | Aufgabe |
+| --- | --- |
+| `PublicWebsite.jsx` | Öffentliche Webseite mit Navigation und Projektseiten |
+| `CMSDashboard.jsx` | Anmeldung und Anbindung der CMS-Verwaltung |
+| `CMSWorkspace.jsx` | Seitenauswahl, gespeicherte Seitenübersicht und Vorschau |
+| `AdminModal.jsx` | Editor für Seiteneinstellungen und Inhaltselemente |
+| `ContentBlocksEditor.jsx` | Inhaltselemente hinzufügen, bearbeiten, sortieren und entfernen |
+| `ContentBlocks.jsx` | Gemeinsame Darstellung für Webseite und ungespeicherte Editor-Vorschau |
+| `RichTextEditor.jsx` | Formatierter Texteditor mit HTML-Ansicht |
+| `SlideshowEditor.jsx` | Bild-Uploads, Bildunterschriften, Reihenfolge und Slideshow-Vorschau |
 
-npm ci; npm --prefix frontend ci; composer install
+Die Komponenten liegen in `frontend/src/components/`. Bilder, CSS und Schriften werden lokal ausgeliefert. Slideshows verwenden eine eigene Komponente mit weichem Bildwechsel ohne Zoom; das ursprüngliche proprietäre MagicSlideshow-Skript wird nicht benötigt.
 
-Konfiguration aus config/cms_config.sample.php erstellen, lokale HTTP-Cookies und private Session-/DB-Pfade einstellen. Dann php bin/migrate.php und bei leerer lokaler Datenbank php bin/import_design.php. Öffentliche Ausgangsinhalte liegen in seeds/design-pages.json; importierte Texte und Bilder werden durch beide Sanitizer geschützt. Bilder und Strukturklassen wurden hierfür eng begrenzt in die Allowlisten aufgenommen.
+## Backend und Datenhaltung
 
-npm run build prüft Build und Isolation. Bei laufender Vorschau prüft npm test alle elf Seiten auf Text- und Bilderhaltung, API-Zugriffsschutz, Readiness, API-Routing und DOMPurify. Die übernommenen weiteren Frameworktests bleiben unter npm run test:framework verfügbar; diese enthalten vorbildspezifische Annahmen und sind kein zugesicherter Projekt-Gesamttest.
+Der zentrale Einstiegspunkt `frontend/public/api/api.php` stellt eine JSON-API bereit. Die PHP-Klassen in `lib/` übernehmen unter anderem Datenbankzugriff, Authentifizierung, Inhaltsvalidierung, Bildverarbeitung, Seitenadressen und Navigation.
 
-## Stand und Grenzen
+- **SQLite:** Seiten und sprachabhängige Inhalte liegen in `sections`. Die sortierte Elementliste wird im JSON-Feld `content_blocks` gespeichert. Weitere Tabellen verwalten unter anderem Akkordeons, URL-Zuordnungen, Menüzuordnungen, Administratorzugang und Schema-Migrationen.
+- **Migrationen:** Nummerierte SQL-Dateien unter `migrations/` entwickeln das Schema weiter. Bestehende Inhaltsdaten werden beim normalen Deployment erhalten.
+- **Uploads:** Hochgeladene Bilder liegen in einem privaten Upload-Verzeichnis neben der Datenbank. Die API liefert sie über `/api/media/ID` aus.
+- **Konfiguration:** Die aktive `config/cms_config.php` definiert private Pfade und Sitzungseinstellungen und gehört nicht ins Repository oder Deployment-Paket.
+- **Code und Inhalte:** Git verwaltet den Programmcode. Lokale und produktive CMS-Inhalte werden durch einen Push nicht synchronisiert.
 
-Seiteninhalte werden als CMS-Sektionen bearbeitet. Das vorhandene Navigationslayout und die bisherigen URLs sind in frontend/src/site-shell.json und page-routes.json abgebildet. Neue CMS-Sektionen sind über /section/ID erreichbar; eine freie Änderung der historischen URL-Struktur ist noch nicht Teil dieses Aufbaus. Vorhandene Copyright- und Rechtstexte wurden unverändert übernommen. Die alten Tracking-/Cookie- und Drittanbieter-Skripte wurden nicht übernommen; CSS, Bilder und Schriften liegen lokal. Verlinkte externe Webseiten bleiben externe Ziele.
+In Produktion sind `webroot/` für öffentlich erreichbare Dateien und `server/` für Bibliotheken, Konfiguration, Datenbank, Uploads, Sitzungen und Backups getrennt.
 
-Die Lockdateien wurden zunächst ohne Versionsänderung übernommen. Die Frontend-Abhängigkeiten wurden für die Deployment-Vorbereitung aktualisiert; npm audit meldet am 2. November 2026 keine bekannten Befunde. Lokaler Node-Stand bei Aufbau: 18.20.8; das Vorbild empfiehlt Node 20+.
+## CMS und Inhaltselemente
 
-## Slideshow-Editor
+Eine Seite besitzt Seiteneinstellungen und eine gemeinsame Liste von Inhaltselementen. Vorhandene Elemente sind zunächst einzeln zugeklappt. Sie lassen sich unabhängig öffnen, am Griff oder mit Pfeilen sortieren, ein-/ausblenden und nach Bestätigung einzeln entfernen. Neue Elemente werden unten angehängt und automatisch geöffnet. Eine Seite unterstützt bis zu 50 Elemente.
 
-Im CMS einen Seitenbereich auswählen und Inhalt bearbeiten öffnen. Unter Slideshow lassen sich JPEG-, PNG- und WebP-Bilder hinzufügen oder austauschen, Bildtitel und Bildunterschriften ändern sowie Bilder am Griff sortieren. Alternativ dienen Pfeile zur Sortierung auf Touchgeräten oder per Tastatur. Speichern übernimmt Reihenfolge und Texte mit der Seite; Abbrechen verwirft diese Eingaben. Uploads werden sofort als geprüfte und neu kodierte Bilddateien im privaten Verzeichnis neben der SQLite-Datei unter uploads/ gespeichert und über /api/media/ID ausgeliefert. Maximal 8 MB und 12 Megapixel pro Bild; PHP benötigt GD. Entfernen aus der Slideshow oder Abbrechen löscht bereits hochgeladene Dateien nicht. Bei Sicherung oder späterem Hostingwechsel müssen Datenbank und uploads/ gemeinsam gesichert und übertragen werden. Die bestehenden Backup-Befehle sichern bislang ausschließlich die Datenbank.
+| Inhaltselement | Funktionen |
+| --- | --- |
+| **Text** | Optionale Überschrift und formatierter Text mit Überschriften, Fett/Kursiv, Listen und Links; HTML-Ansicht sowie Rückgängig/Wiederholen |
+| **Bild / Bild mit Text** | Upload oder lokaler Bildpfad, Alternativtext, Bildunterschrift und optionaler Text; Originalformat als Standard, außerdem 16:9, 3:2, 4:3, 1:1 und 3:4; Bild über oder neben dem Text, Ausrichtung, Breite und Bildfokus |
+| **Slideshow** | Bilder hochladen oder austauschen, Titel und Bildunterschriften bearbeiten, Reihenfolge per Ziehen oder Pfeilen ändern und Standzeit einstellen; Vorschau vor dem Speichern |
+| **Akkordeon** | Aufklappbare Themen mit Überschrift, formatiertem Text und eigener Sichtbarkeit |
+| **YouTube-Video** | Video-Adresse oder ID, eigenes lokales Vorschaubild und Bildunterschrift; Verbindung zu YouTube erst nach Klick auf „YouTube-Video laden“ |
+| **Audio** | HTML-Audioplayer für MP3, OGG, WAV oder M4A vom eigenen Webspace; die Datei wird vorher auf dem Webspace abgelegt, ein Audio-Upload ist nicht eingebaut |
+| **Link / Schaltfläche** | Beschriftung und internes Ziel oder externe HTTPS-Adresse; Darstellung als Textlink oder Schaltfläche |
 
-## Cookies und öffentliche Webseite
+Die Seitengestaltung mit Hintergrundfarbe und Hintergrundbild ist eine eigene Seiteneinstellung. Auf kleinen Bildschirmen werden Bild und Text untereinander dargestellt.
 
-Öffentliche Seiten und Inhaltsabfragen öffnen keine CMS-Sitzung und verwenden keine lokale Sprachspeicherung. Die CMS-Anmeldung verwendet ein Session-Cookie mit Path=/api. Öffentliche Inhaltsabfragen ignorieren vorhandene CMS-Sitzungen; Entwürfe können ausschließlich mit einer authentifizierten CMS-Vorschau unter /cms/preview/ID und explizitem API-Preview-Parameter betrachtet werden. Ein früheres Cookie mit Path=/ wird beim nächsten CMS-Aufruf entfernt. Der Cookie-Abschnitt der deutschen Datenschutzerklärung wurde nach verifizierter Datenbanksicherung angepasst. Die Aussage gilt für diese lokale Anwendung; ein späteres Hosting muss zusätzlich auf eigene Cookies geprüft werden.
+Beim Öffnen älterer Seiten werden die bisherigen Texte, Bilder, Slideshows und Akkordeons zunächst im Editor-Entwurf in einzelne Elemente überführt. Erst **Speichern** legt diese Liste ab. Die ursprünglichen Inhaltsfelder bleiben als Rückfallebene erhalten; es erfolgt keine automatische Massenumstellung der Datenbank. Bereinigte Layout-Rahmen erhalten dabei die vorhandene Bild-/Textanordnung.
 
-## Öffentliche Gestaltung (1. November 2026)
+Die Seitenübersicht zeigt den gespeicherten Stand ohne Eingabefeld-Optik. Änderungen erfolgen über **Inhalt bearbeiten**. **Abbrechen** verwirft ungespeicherte Inhaltsänderungen.
 
-Die öffentliche Webseite verwendet ein dunkles, zurückhaltendes Portfolio-Layout nach dem Stitch-Entwurf. Der rote Punkt im Logo, eigene Fotos und vorhandene Projekttexte bleiben erhalten. Die Startseite nennt ausschließlich Architekturleistungen in LP 1–4 (Grundlagenermittlung, Vorplanung, Entwurfsplanung, Genehmigungsplanung). Projektkarten werden aus den veröffentlichten CMS-Sektionen erzeugt; Texte und Slideshows stammen weiterhin aus der Datenbank. Bestehende Seitenadressen, cookiearme öffentliche Verarbeitung und CMS-Funktionen bleiben angebunden. Technische Koordinaten, erfundene Referenzen und unbelegte Leistungsversprechen des Entwurfs wurden nicht übernommen.
+### Seitenadressen und Navigation
 
-## Formatierter Texteditor
+Menüname und URL-Name können unabhängig vergeben werden. Bei neuen Seiten erzeugt ein leeres URL-Feld den Namen aus dem Menüeintrag, mit deutschen Umlauten als `ae`, `oe`, `ue` und `ß` als `ss`. Bestehende Adressen bleiben bei einer reinen Umbenennung des Menüpunkts stabil; geänderte registrierte Adressen können auf die neue Adresse weiterleiten.
 
-Seiteninhalte und Akkordeontexte lassen sich direkt formatiert bearbeiten: Überschriften, Fett/Kursiv, Listen, Links und Rückgängig/Wiederholen. Die HTML-Schaltfläche öffnet weiterhin den Quelltext. Aus Word eingefügte Inhalte werden bereinigt; eingefügte externe Bilder werden nicht übernommen (dafür dient der Slideshow-Upload). Slideshows werden im Texteditor als geschützte Platzhalter dargestellt und bleiben auch beim vollständigen Ersetzen des Textes erhalten. Die bestehende Live-Vorschau und das Speichern über die PHP-API bleiben angebunden. Es wird kein externer Editor-Dienst geladen. Die native Formatierung wurde im integrierten Chromium-Browser geprüft. Die synthetische Testseite liegt unter frontend/tests und wird nicht in den normalen Vite-Build aufgenommen.
+Veröffentlichung, Menü-Sichtbarkeit, Reihenfolge und Zuordnung zum Hauptmenü oder zu einem übergeordneten Menüpunkt steuern die öffentliche Navigation. Die Inhaltsbearbeitung unterstützt Deutsch, Englisch und Französisch.
 
-Das Feld Seitenbild (16:9) unterstützt ebenfalls direkten Upload, Austausch, Vorschau und Entfernen. Es nutzt dieselbe geschützte Upload-API wie die Slideshow; die Zuordnung zur Seite wird erst beim Speichern übernommen. Während eines Uploads ist Speichern gesperrt. Die öffentliche Webseite zeigt das gespeicherte Seitenbild vor dem Inhalt an.
+### Bild-Uploads
 
-Das Hintergrundbild unterstützt ebenfalls Upload, Austausch, Entfernen und eine Vorschau mit Lesefilter. Die Zuordnung wird mit der Seite gespeichert; die öffentliche Seite zeigt den Hintergrund hinter dem Seiteninhalt mit einem dunklen Filter. Die hochgeladene Datei wird beim Entfernen der Zuordnung nicht gelöscht.
+Für Bildbausteine, Slideshows, Video-Vorschaubilder und Seitenhintergründe wird dieselbe geschützte Upload-Verarbeitung verwendet:
 
-Für Seitenbilder ist Originalformat ohne Beschnitt der Standard. Im CMS stehen zusätzlich 16:9 und Bild neben Text mit Position links/rechts zur Auswahl. Die Einstellung image_layout wird je Seite gespeichert; Schema-Migration 010 ergänzt dafür eine eigene validierte Spalte. Vorschau und öffentliche Darstellung nutzen dieselbe Layout-Komponente. Auf Smartphones werden Bild und Text untereinander angeordnet.
+- JPEG, PNG und WebP; maximal 8 MiB und 12 Millionen Pixel pro Bild.
+- Prüfung und Neukodierung mit GD, anschließend Speicherung mit zufälligem Dateinamen.
+- Die Datei wird sofort hochgeladen; ihre Zuordnung zum Inhalt wird erst mit der Seite gespeichert.
+- Entfernen einer Zuordnung oder Abbrechen löscht die hochgeladene Datei nicht automatisch.
 
-## Deployment vorbereiten
+Für einen Umzug müssen Datenbank und Upload-Verzeichnis gemeinsam übernommen werden. Der Datenbank-Backup-Befehl allein sichert keine Bilddateien; der Deployment-Prozess sichert zusätzlich die Uploads.
 
-Siehe [DomainFactory-Anleitung](docs/DEPLOYMENT.md). Die Paketierung erstellt geprüfte Archive ohne Konfiguration, Datenbank und Uploads. GitHub-Ziel: https://github.com/wfreibe/cms_freibe. Der automatische GitHub-Workflow veröffentlicht nach erfolgreichen Prüfungen von master; Details stehen in docs/GITHUB_DEPLOYMENT.md.
+## Anmeldung und Datenschutz
 
-## Modulare Inhaltsbausteine (5. November 2026)
+Öffentliche Inhaltsabrufe starten keine CMS-Sitzung. Das CMS verwendet ein Session-Cookie mit `Path=/api`, `HttpOnly` und `SameSite=Strict`, in Produktion zusätzlich `Secure`. Schreibzugriffe benötigen Anmeldung und CSRF-Token; fehlgeschlagene Anmeldungen werden begrenzt.
 
-Seiten können unter „Inhalt bearbeiten“ aus sortierbaren Bausteinen aufgebaut werden: Text, Bild mit Text und erweiterten Bildoptionen, Slideshow, Akkordeon, YouTube mit Freigabe, Audio vom eigenen Webspace sowie Link/Schaltfläche. Bestehende Seiten bleiben als verschiebbarer und wiederherstellbarer Baustein erhalten. Vorschau und Webseite verwenden dieselbe Darstellung. Hinzu kommen eigene Seitenadressen, wählbare Menüzuordnung und Hintergrundfarben mit Kontrastanpassung. Details zu Bedienung, Datenmodell, Migrationen 011–013 und Tests: [docs/INHALTSBAUSTEINE.md](docs/INHALTSBAUSTEINE.md). Schema-Migrationen erhalten bestehende Inhalte; Laufzeitdaten sind nicht Bestandteil des Deployment-Pakets.
+YouTube wird erst nach ausdrücklichem Laden des Videos eingebunden. Dabei entsteht eine Verbindung zu YouTube/Google; die vorgelagerte Ansicht verwendet ein eigenes lokales Vorschaubild. Die App besitzt kein aktives Kontaktformular zum Versand von Nachrichten.
+
+## Lokal entwickeln
+
+Voraussetzungen: Node.js und npm, Composer sowie PHP mit PDO_SQLite, DOM, mbstring, Sessions, GD und ZIP. Für eine zur CI passende Umgebung Node.js 22 und PHP 8.3 verwenden.
+
+```sh
+npm ci
+npm --prefix frontend ci
+composer install
+```
+
+Für eine neue lokale Installation `config/cms_config.sample.php` als `config/cms_config.php` übernehmen, private Datenbank-, Backup- und Sitzungspfade einrichten und für lokales HTTP `cookie_secure` auf `false` setzen. Vorhandene Konfigurationen und Inhaltsdatenbanken beibehalten.
+
+```sh
+php bin/migrate.php
+# Nur für eine neue, leere Inhaltsdatenbank:
+php bin/import_design.php
+# Nur wenn noch kein Administrator vorhanden ist:
+php bin/provision_admin.php
+npm run dev
+```
+
+Die Provisionierung erzeugt ein Einmalpasswort, das bei der ersten Anmeldung geändert werden muss. Sie überschreibt keinen vorhandenen Zugang. `seeds/design-pages.json` enthält die ursprünglichen öffentlichen Inhalte und ist kein Export des aktuellen produktiven CMS.
+
+- Webseite: [127.0.0.1:3011](http://127.0.0.1:3011/)
+- CMS: [127.0.0.1:3011/cms](http://127.0.0.1:3011/cms)
+- API-Readiness: [127.0.0.1:8011/api/ready](http://127.0.0.1:8011/api/ready)
+
+## Tests, Build und Deployment
+
+| Befehl | Zweck |
+| --- | --- |
+| `npm test` | Inhalts-, API-, Sicherheits-, Upload-, URL-, Navigations- und Elementtests |
+| `npm run build` | Produktionsbuild mit Build- und Isolationsprüfung |
+| `npm run package:deploy` | Frischer Build und geprüftes Deployment-ZIP ohne aktive Konfiguration oder Laufzeitdaten |
+| `php bin/backup.php` | Sicherung der Inhaltsdatenbank |
+
+Der Originalseiten-Vergleich in `npm test` benötigt eine laufende Anwendung mit den unveränderten Seed-Inhalten. Bearbeitete lokale Seiten können von diesen Vergleichsdaten abweichen. GitHub führt die Tests deshalb mit einer getrennten Testdatenbank aus; viele weitere Tests erzeugen selbst isolierte Testumgebungen.
+
+- **`development`:** Entwicklung; ein Push startet Tests und erstellt ein geprüftes Deployment-Artefakt.
+- **Pull Request:** Prüfung vor der Übernahme nach `master`, ohne Produktionsdeployment.
+- **`master`:** Nach erfolgreichen Prüfungen veröffentlicht GitHub Actions automatisch auf DomainFactory.
+
+Der Workflow sichert Datenbank, Uploads und Programmdateien vor der Aktualisierung. Er überträgt das geprüfte Paket per SSH und rsync ohne Löschabgleich. Produktive Datenbank, Uploads, aktive Konfiguration und vorhandene Backups werden nicht durch lokale Daten ersetzt. Anschließend laufen Migrationen sowie Readiness- und HTTPS-Prüfungen. Maßgeblich ist `.github/workflows/deploy.yml`.
+
+## Weiterführende Dokumentation
+
+- [Technische Übersicht und Deployment-Prozess](docs/TECHNIK_UND_DEPLOYMENT.md)
+- [Inhaltselemente, Datenmodell und Bedienung](docs/INHALTSBAUSTEINE.md)
+- [Automatisches GitHub-Deployment](docs/GITHUB_DEPLOYMENT.md)
+- [Hosting und Deployment-Paket](docs/DEPLOYMENT.md)
