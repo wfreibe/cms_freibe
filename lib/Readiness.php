@@ -48,7 +48,7 @@ final class Readiness
             foreach ($migrations as $migration) {
                 if (preg_match('/^(\d+)_/', basename($migration), $match) && !in_array((int)$match[1], $applied, true)) return 503;
             }
-            foreach (['sections', 'section_accordions', 'admin_credentials', 'login_attempts'] as $table) {
+            foreach (['sections', 'section_accordions', 'admin_credentials', 'login_attempts', 'page_urls', 'page_navigation'] as $table) {
                 $db->query('SELECT * FROM ' . $table . ' LIMIT 0');
             }
             $db = null;

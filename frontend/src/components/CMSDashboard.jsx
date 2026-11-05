@@ -1,3 +1,6 @@
+import {MenuParentField} from './MenuParentField';
+import {BackgroundColorPicker} from './BackgroundColorPicker';
+import {PageUrlField} from './PageUrlField';
 import { useState } from 'preact/hooks';
 import { useI18n } from '../context/I18nContext';
 import { CMSWorkspace } from './CMSWorkspace';
@@ -32,11 +35,13 @@ export function CMSDashboard({ onBackToWebsite }) {
   const [newSection, setNewSection] = useState({
     id: '',
     nav_label: '',
+    url_slug: '',
+    menu_parent: '',
     title: '',
     subtitle: '',
     content: '',
     image_url: '',
-    bg_color: '#f4e4e5',
+    bg_color: '',
     bg_image_url: '',
     is_published: 0,
     show_in_navigation: 1
@@ -90,7 +95,7 @@ export function CMSDashboard({ onBackToWebsite }) {
       return;
     }
 
-    if (window.confirm(`Möchten Sie den Menüpunkt "${sec.nav_label}" (${sec.id}) wirklich löschen?`)) {
+    if (window.confirm(`Möchten Sie den Menüpunkt "${sec.nav_label}" (${sec.id}) wirklich löschen? Zugeordnete Unterseiten bleiben erhalten und werden ins Hauptmenü verschoben.`)) {
       const res = await deleteSectionApi(sec.id);
       if (!res.success) {
         alert(res.error || 'Fehler beim Löschen');
@@ -112,7 +117,7 @@ export function CMSDashboard({ onBackToWebsite }) {
       setCreateStatus({ state: 'success', message: 'Sektion erfolgreich erstellt!' });
       setTimeout(() => {
         setIsCreateOpen(false);
-        setNewSection({ id: '', nav_label: '', title: '', subtitle: '', content: '', image_url: '', bg_color: '#f4e4e5', bg_image_url: '' });
+        setNewSection({ id: '', nav_label: '', url_slug: '', menu_parent: '', title: '', subtitle: '', content: '', image_url: '', bg_color: '', bg_image_url: '' });
         setCreateStatus({ state: 'idle', message: '' });
       }, 700);
     } else {
@@ -292,6 +297,10 @@ export function CMSDashboard({ onBackToWebsite }) {
                   />
                 </div>
 
+                <MenuParentField value={newSection.menu_parent||''} onChange={menu_parent=>setNewSection(prev=>({...prev,menu_parent}))} pages={cmsSections}/>
+
+                <PageUrlField value={newSection.url_slug||''} onChange={url_slug=>setNewSection(prev=>({...prev,url_slug}))} menuName={newSection.nav_label}/>
+
                 <div className="form-group">
                   <label><strong>Technischer Anker-Link (ID) *</strong></label>
                   <input
@@ -299,7 +308,7 @@ export function CMSDashboard({ onBackToWebsite }) {
                     required
                     value={newSection.id}
                     onInput={(e) => setNewSection({ ...newSection, id: e.target.value })}
-                    placeholder="z. B. workshops (wird zu /workshops)"
+                    placeholder="Interne Kennung, unabhängig von der Seitenadresse"
                   />
                 </div>
 
@@ -334,66 +343,7 @@ export function CMSDashboard({ onBackToWebsite }) {
                   />
                 </div>
 
-                <div className="form-group" style={{ background: '#fdfbfb', border: '1px solid #ebdada', borderRadius: '6px', padding: '12px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <strong>🎨 Hintergrundfarbe</strong>
-                    {newSection.bg_color && (
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          width: '16px',
-                          height: '16px',
-                          borderRadius: '50%',
-                          backgroundColor: newSection.bg_color,
-                          border: '1px solid #999'
-                        }}
-                      />
-                    )}
-                  </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '8px' }}>
-                    {[
-                      { label: 'Soft Blush', value: '#f4e4e5' },
-                      { label: 'Weiß', value: '#ffffff' },
-                      { label: 'Zartes Rosé', value: '#fbf3f5' },
-                      { label: 'Warmes Creme', value: '#faf5f0' }
-                    ].map((p) => (
-                      <button
-                        key={p.value}
-                        type="button"
-                        onClick={() => setNewSection({ ...newSection, bg_color: p.value })}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '5px',
-                          padding: '3px 8px',
-                          borderRadius: '12px',
-                          border: newSection.bg_color === p.value ? '2px solid var(--color-primary)' : '1px solid #ccc',
-                          backgroundColor: p.value,
-                          fontSize: '11px',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.value, border: '1px solid rgba(0,0,0,0.2)' }} />
-                        {p.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <input
-                      type="color"
-                      value={newSection.bg_color && newSection.bg_color.startsWith('#') && newSection.bg_color.length === 7 ? newSection.bg_color : '#f4e4e5'}
-                      onChange={(e) => setNewSection({ ...newSection, bg_color: e.target.value })}
-                      style={{ width: '32px', height: '28px', padding: 0, border: '1px solid #ccc', borderRadius: '3px', cursor: 'pointer' }}
-                    />
-                    <input
-                      type="text"
-                      value={newSection.bg_color}
-                      onInput={(e) => setNewSection({ ...newSection, bg_color: e.target.value })}
-                      placeholder="#f4e4e5"
-                      style={{ width: '100px', fontSize: '12px', padding: '4px 6px' }}
-                    />
-                  </div>
-                </div>
+                <BackgroundColorPicker value={newSection.bg_color} onChange={bg_color=>setNewSection(prev=>({...prev,bg_color}))}/>
 
                 <div className="form-group">
                   <label>Vollflächiges Hintergrundbild-URL (optional)</label>

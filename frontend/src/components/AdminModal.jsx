@@ -1,10 +1,16 @@
-import { PageImageLayout } from './PageImageLayout';
+import {MenuParentField} from './MenuParentField';
+import {menuParent} from '../utils/navigation';
+import {BackgroundColorPicker} from './BackgroundColorPicker';
+import {IconButton} from './CmsActions';
+import {PageUrlField} from './PageUrlField';
+import { ContentBlocks } from './ContentBlocks';
+import { ContentBlocksEditor } from './ContentBlocksEditor';
+import { pageBlocks } from '../utils/contentBlocks';
 import { SectionImageUpload } from './SectionImageUpload';
 import { RichTextEditor } from './RichTextEditor';
 import { SlideshowEditor } from './SlideshowEditor';
 import { useState, useEffect, useRef } from 'preact/hooks';
 import { useI18n } from '../context/I18nContext';
-import { WebsiteContent } from './WebsiteContent';
 
 // Helper component for picking and inserting an accordion jump link
 function AccordionLinkPicker({
@@ -181,9 +187,12 @@ export function AdminModal() {
 
   const [form, setForm] = useState({
     nav_label: '',
+    url_slug: '',
+    menu_parent: '',
     title: '',
     subtitle: '',
     content: '',
+    content_blocks: pageBlocks(null),
     image_url: '',
     image_layout: 'original',
     bg_color: '',
@@ -230,9 +239,12 @@ export function AdminModal() {
 
       setForm({
         nav_label: activeEditSection.id === 'home' && activeEditSection.nav_label === activeEditSection.title ? 'Home' : (activeEditSection.nav_label || ''),
+        url_slug: activeEditSection.url_slug || '',
+        menu_parent: menuParent(activeEditSection),
         title: activeEditSection.title || '',
         subtitle: activeEditSection.subtitle || '',
         content: activeEditSection.content || '',
+        content_blocks: JSON.parse(JSON.stringify(pageBlocks(activeEditSection.content_blocks))),
         image_url: activeEditSection.image_url || '',
         image_layout: activeEditSection.image_layout || 'original',
         bg_color: activeEditSection.bg_color || '',
@@ -399,9 +411,12 @@ export function AdminModal() {
         body: JSON.stringify({
           lang: language,
           nav_label: form.nav_label,
+          url_slug: form.url_slug,
+          menu_parent: form.menu_parent,
           title: form.title,
           subtitle: form.subtitle,
           content: form.content,
+          content_blocks: form.content_blocks,
           image_layout: form.image_layout,
           image_url: form.image_url ? form.image_url.trim() : null,
           bg_color: form.bg_color ? form.bg_color.trim() : null,
@@ -435,9 +450,12 @@ export function AdminModal() {
         updateSectionLocal({
           id: activeEditSection.id,
           nav_label: form.nav_label,
+          url_slug: form.url_slug,
+          menu_parent: form.menu_parent,
           title: form.title,
           subtitle: form.subtitle,
           content: form.content,
+          content_blocks: form.content_blocks,
           image_layout: form.image_layout,
           image_url: form.image_url ? form.image_url.trim() : null,
           bg_color: form.bg_color ? form.bg_color.trim() : null,
@@ -484,14 +502,7 @@ export function AdminModal() {
             <h3>{activeEditSection.nav_label || activeEditSection.title} bearbeiten</h3>
             <p>Änderungen werden mit „Speichern“ übernommen.</p>
           </div>
-          <button
-            type="button"
-            className="modal-close-btn"
-            onClick={() => setActiveEditSection(null)}
-            aria-label="Editor schließen"
-          >
-            &times;
-          </button>
+          <IconButton icon="close" label="Editor schließen" onClick={()=>setActiveEditSection(null)}/>
         </div>
 
         <form onSubmit={handleSave}>
@@ -520,6 +531,10 @@ export function AdminModal() {
               </div>
             )}
 
+            <MenuParentField value={form.menu_parent} onChange={menu_parent=>setForm(prev=>({...prev,menu_parent}))} pages={allSectionsList} pageId={activeEditSection.id} hasChildren={allSectionsList.some(p=>menuParent(p)===activeEditSection.id)}/>
+
+            <PageUrlField value={form.url_slug} onChange={url_slug=>setForm(prev=>({...prev,url_slug}))} menuName={form.nav_label} currentPath={activeEditSection.url_path} home={activeEditSection.id==='home'}/>
+
             {/* Titel */}
             <div className="form-group">
               <label><strong>{t('sectionTitle')}</strong></label>
@@ -541,121 +556,15 @@ export function AdminModal() {
               />
             </div>
 
+            <ContentBlocksEditor key={activeEditSection.id+':blocks:'+language} blocks={form.content_blocks} onChange={content_blocks=>setForm(prev=>({...prev,content_blocks}))} csrfToken={csrfToken} onBusyChange={setUploadBusy} busy={uploadBusy} legacyEditor={<>
             {!isLegalPage && <SectionImageUpload key={activeEditSection.id+':image:'+language} layout={form.image_layout} onLayoutChange={image_layout=>setForm(prev=>({...prev,image_layout}))} value={form.image_url} onChange={image_url=>setForm(prev=>({...prev,image_url}))} csrfToken={csrfToken} onBusyChange={setUploadBusy} disabled={uploadBusy} />}
 
             {/* Hintergrund-Design: Farbe & Vollbreite Bild */}
             {!isLegalPage && (
-              <div className="admin-bg-settings-card" style={{ background: '#fdfbfb', border: '1px solid #ebdada', borderRadius: '8px', padding: '16px 18px', margin: '20px 0' }}>
-                <div style={{ marginBottom: '14px' }}>
-                  <strong style={{ fontSize: '14.5px', color: 'var(--color-primary)', display: 'block', marginBottom: '3px' }}>
-                    {t('sectionBgDesignTitle')}
-                  </strong>
-                  <span style={{ fontSize: '12px', color: '#666' }}>
-                    {t('sectionBgDesignDesc')}
-                  </span>
-                </div>
-
-                {/* 1. Hintergrundfarbe */}
-                <div style={{ marginBottom: '16px', paddingBottom: '14px', borderBottom: '1px solid #f0e4e5' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', marginBottom: '8px' }}>
-                    <strong>{t('sectionBgColor')}:</strong>
-                    {form.bg_color && (
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          backgroundColor: form.bg_color,
-                          border: '1px solid #999',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                        }}
-                        title={form.bg_color}
-                      />
-                    )}
-                  </label>
-
-                  {/* Farb-Presets / Swatches */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
-                    {[
-                      { label: 'Soft Blush (Standard)', value: '#f4e4e5', textCol: '#914c5e' },
-                      { label: 'Weiß', value: '#ffffff', textCol: '#333333' },
-                      { label: 'Zartes Rosé', value: '#fbf3f5', textCol: '#914c5e' },
-                      { label: 'Warmes Creme', value: '#faf5f0', textCol: '#555555' },
-                      { label: 'Beere Dunkel', value: '#914c5e', textCol: '#ffffff' }
-                    ].map((preset) => (
-                      <button
-                        key={preset.value}
-                        type="button"
-                        onClick={() => setForm({ ...form, bg_color: preset.value })}
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '4px 10px',
-                          borderRadius: '16px',
-                          border: form.bg_color === preset.value ? '2px solid var(--color-primary)' : '1px solid #dcdcdc',
-                          backgroundColor: preset.value,
-                          color: preset.textCol,
-                          fontSize: '11.5px',
-                          fontWeight: form.bg_color === preset.value ? 'bold' : 'normal',
-                          cursor: 'pointer',
-                          boxShadow: form.bg_color === preset.value ? '0 0 0 2px rgba(145, 76, 94, 0.25)' : 'none',
-                          transition: 'all 0.15s ease'
-                        }}
-                        title={`${preset.label} (${preset.value})`}
-                      >
-                        <span
-                          style={{
-                            width: '10px',
-                            height: '10px',
-                            borderRadius: '50%',
-                            backgroundColor: preset.value,
-                            border: '1px solid rgba(0,0,0,0.15)'
-                          }}
-                        />
-                        {preset.label}
-                      </button>
-                    ))}
-                    {form.bg_color && (
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, bg_color: '' })}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#888',
-                          fontSize: '11px',
-                          cursor: 'pointer',
-                          padding: '4px 6px',
-                          textDecoration: 'underline'
-                        }}
-                        title="Auf Standard zurücksetzen"
-                      >
-                        ✕ Zurücksetzen
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Freie Farbauswahl: Color Picker + Hex Input */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px' }}>
-                    <input
-                      type="color"
-                      value={form.bg_color && form.bg_color.startsWith('#') && form.bg_color.length === 7 ? form.bg_color : '#f4e4e5'}
-                      onChange={(e) => setForm({ ...form, bg_color: e.target.value })}
-                      style={{ width: '38px', height: '32px', padding: '1px', border: '1px solid #ccc', borderRadius: '4px', cursor: 'pointer' }}
-                      title="Farbe mit Pipette/Farbrad auswählen"
-                    />
-                    <input
-                      type="text"
-                      value={form.bg_color}
-                      onInput={(e) => setForm({ ...form, bg_color: e.target.value })}
-                      placeholder="#f4e4e5"
-                      style={{ width: '110px', fontFamily: 'monospace', fontSize: '13px', padding: '6px 8px' }}
-                    />
-                    <span style={{ fontSize: '12px', color: '#666' }}>Eigener HEX-Farbcode</span>
-                  </div>
-                </div>
+              <div className="admin-bg-settings-card">
+                <strong className="cms-background-heading">{t('sectionBgDesignTitle')}</strong>
+                <p className="cms-background-description">{t('sectionBgDesignDesc')}</p>
+                <BackgroundColorPicker value={form.bg_color} onChange={bg_color=>setForm(prev=>({...prev,bg_color}))}/>
 
                 <SectionImageUpload key={activeEditSection.id+':background:'+language} kind="background" value={form.bg_image_url} onChange={bg_image_url=>setForm(prev=>({...prev,bg_image_url}))} csrfToken={csrfToken} onBusyChange={setUploadBusy} disabled={uploadBusy} />
               </div>
@@ -668,13 +577,9 @@ export function AdminModal() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label style={{ margin: 0 }}><strong>{t('sectionContent')}</strong></label>
                 {!isLegalPage && (
-                  <button
-                    type="button"
-                    className="btn-acc-link-trigger"
+                  <IconButton icon="link" label="Akkordeon-Sprunglink einfügen"
                     onClick={() => setActiveLinkHelper(activeLinkHelper === 'main' ? null : 'main')}
-                  >
-                    {t('insertAccordionLink')}
-                  </button>
+                  />
                 )}
               </div>
 
@@ -799,13 +704,7 @@ export function AdminModal() {
                       {t('accordionsDescription')}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    className="btn-add-accordion"
-                    onClick={handleAddAccordion}
-                  >
-                    {t('addAccordion')}
-                  </button>
+                  <IconButton icon="plus" label="Akkordeon hinzufügen" onClick={handleAddAccordion}/>
                 </div>
 
                 {(!form.accordions || form.accordions.length === 0) ? (
@@ -824,32 +723,9 @@ export function AdminModal() {
                             {acc.title || '(Kein Titel)'}
                           </span>
                           <div className="admin-acc-card-actions">
-                            <button
-                              type="button"
-                              className="admin-acc-action-btn"
-                              disabled={index === 0}
-                              onClick={() => handleMoveAccordion(index, -1)}
-                              title="Nach oben"
-                            >
-                              ▲
-                            </button>
-                            <button
-                              type="button"
-                              className="admin-acc-action-btn"
-                              disabled={index === form.accordions.length - 1}
-                              onClick={() => handleMoveAccordion(index, 1)}
-                              title="Nach unten"
-                            >
-                              ▼
-                            </button>
-                            <button
-                              type="button"
-                              className="admin-acc-delete-btn"
-                              onClick={() => handleRemoveAccordion(index)}
-                              title={t('deleteAccordion')}
-                            >
-                              ✕ {t('deleteAccordion')}
-                            </button>
+                            <IconButton icon="up" label={'Akkordeon '+(index+1)+' nach oben'} disabled={index===0} onClick={()=>handleMoveAccordion(index,-1)}/>
+                            <IconButton icon="down" label={'Akkordeon '+(index+1)+' nach unten'} disabled={index===form.accordions.length-1} onClick={()=>handleMoveAccordion(index,1)}/>
+                            <IconButton icon="trash" danger label={'Akkordeon '+(index+1)+' entfernen'} onClick={()=>handleRemoveAccordion(index)}/>
                           </div>
                         </div>
 
@@ -896,13 +772,9 @@ export function AdminModal() {
                           <div className="form-group" style={{ marginBottom: '0' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
                               <label style={{ fontSize: '12px', margin: 0 }}>{t('accordionItemContent')}</label>
-                              <button
-                                type="button"
-                                className="btn-acc-link-trigger"
+                              <IconButton icon="link" label="Akkordeon-Sprunglink einfügen"
                                 onClick={() => setActiveLinkHelper(activeLinkHelper === `acc_${index}` ? null : `acc_${index}`)}
-                              >
-                                {t('insertAccordionLink')}
-                              </button>
+                              />
                             </div>
 
                             {activeLinkHelper === `acc_${index}` && (
@@ -924,6 +796,8 @@ export function AdminModal() {
                 )}
               </div>
             )}
+
+            </>}/>
 
             {/* Status Veröffentlicht / Entwurf */}
             <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '15px 0' }}>
@@ -977,18 +851,11 @@ export function AdminModal() {
               <small>Aktuelle Eingaben</small>
             </div>
             <p className="cms-editor-preview-note">Live-Vorschau · noch nicht gespeichert</p>
-            <div className="cms-editor-preview-stage" style={{ backgroundColor: form.bg_color || undefined, backgroundImage: form.bg_image_url ? 'linear-gradient(rgba(255,255,255,.9),rgba(255,255,255,.9)),url('+JSON.stringify(form.bg_image_url)+')' : undefined, backgroundSize:'cover', backgroundPosition:'center' }}>
+            <div className="cms-editor-preview-stage">
               <div className="cms-editor-preview-paper">
                 <h4>{form.title || 'Überschrift'}</h4>
                 {form.subtitle && <p className="cms-editor-preview-subtitle">{form.subtitle}</p>}
-                <PageImageLayout src={form.image_url} alt="Seitenbild" mode={form.image_layout}>
-                <div className="cms-editor-preview-copy"><WebsiteContent html={form.content} pageId={activeEditSection.id} /></div>
-                {(form.accordions || []).length > 0 && (
-                  <div className="cms-editor-preview-accordions">
-                    {form.accordions.map((accordion, index) => <div key={accordion.id || index}>{accordion.title || 'Neues Thema'} <span aria-hidden="true">＋</span></div>)}
-                  </div>
-                )}
-                </PageImageLayout>
+                <div className="cms-editor-preview-copy"><ContentBlocks page={{...form,id:activeEditSection.id}} preview /></div>
               </div>
             </div>
             <div className="cms-editor-preview-foot">{language.toUpperCase()} · {form.is_published ? 'Veröffentlicht' : 'Entwurf'}</div>

@@ -1,0 +1,40 @@
+/* Shared CMS controls; no public-site actions use these classes. */
+button.cms-icon-button,label.cms-icon-upload {
+ position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px;
+ width:40px;min-width:40px;max-width:40px;height:40px;min-height:40px;margin:0;padding:0;
+ border:1px solid #a5bac4;border-radius:5px;background:#fff;color:#14303e;
+ cursor:pointer;vertical-align:middle;line-height:1;box-sizing:border-box;
+}
+.cms-action-icon{display:block;flex:none;pointer-events:none}
+button.cms-icon-button:hover,label.cms-icon-upload:hover{background:#def5f3;border-color:#286570}
+button.cms-icon-button:focus-visible,label.cms-icon-upload:focus-within{outline:3px solid #117f86;outline-offset:3px;z-index:2}
+button.cms-icon-button:disabled{opacity:.4;cursor:not-allowed}
+button.cms-icon-button.cms-icon-danger{color:#a01838;border-color:#d4a5af}
+button.cms-icon-button.cms-icon-danger:hover{background:#fff0f3}
+button.cms-icon-button[aria-pressed=true]{background:#d8efed;border-color:#286570;color:#14303e}
+button.cms-icon-button[draggable=true]{cursor:grab}
+button.cms-icon-button[draggable=true]:active{cursor:grabbing}
+label.cms-icon-upload>input[type=file]{
+ position:absolute;inset:0;width:100%;height:100%;max-width:none;margin:0;padding:0;opacity:0;cursor:pointer;
+}
+label.cms-icon-upload:has(input:disabled){opacity:.4;cursor:not-allowed}
+button.cms-icon-button:focus-visible::after,label.cms-icon-upload:focus-within::after{
+ content:attr(data-tooltip);position:absolute;top:calc(100% + 6px);left:0;z-index:50;
+ width:max-content;max-width:180px;white-space:normal;pointer-events:none;
+ padding:7px 10px;border-radius:4px;background:#14303e;color:#fff;font:12px/1.4 Arial,sans-serif;text-align:left;
+}
+.block-editor-bar strong{flex:1 1 160px}
+.block-editor-summary{display:list-item;list-style-position:inside}
+.block-editor-summary .cms-action-icon{display:inline-block;vertical-align:middle;width:18px;height:18px}
+.cms-slideshow-editor .slideshow-image-list>li{grid-template-columns:40px 100px minmax(0,1fr)}
+.slideshow-image-fields .cms-icon-upload{display:inline-flex}
+.cms-icon-legend{font-size:12px;line-height:1.6;color:#526875}
+.rich-text-editor:has(.cms-icon-button:focus-visible){overflow:visible}
+@media(max-width:650px){
+ button.cms-icon-button,label.cms-icon-upload{flex-basis:44px;width:44px;min-width:44px;max-width:44px;height:44px;min-height:44px}
+ .cms-slideshow-editor .slideshow-image-list>li{grid-template-columns:44px minmax(0,1fr)}
+ .block-editor-bar{gap:6px}.block-editor-bar strong{flex-basis:calc(100% - 60px)}
+}
+
+.block-editor-bar button.cms-icon-button:not([draggable])::after{left:auto;right:0}
+@media(max-width:650px){.block-editor-bar button.cms-icon-button:not([draggable]):not(.cms-icon-danger)::after{left:0;right:auto}}

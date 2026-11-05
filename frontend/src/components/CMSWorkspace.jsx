@@ -1,3 +1,5 @@
+import {menuParent} from '../utils/navigation';
+import {IconButton} from './CmsActions';
 import { useState } from 'preact/hooks';
 
 const LEGAL_IDS = new Set(['impressum', 'datenschutz']);
@@ -39,11 +41,11 @@ export function CMSWorkspace({
     <button
       key={section.id}
       type="button"
-      className={`cms-workspace-nav-item ${selected?.id === section.id ? 'is-selected' : ''}`}
+      className={`cms-workspace-nav-item ${selected?.id === section.id ? 'is-selected' : ''} ${menuParent(section)?'is-subpage':''}`}
       onClick={() => setSelectedId(section.id)}
       aria-current={selected?.id === section.id ? 'page' : undefined}
     >
-      <span className="cms-workspace-nav-icon" aria-hidden="true">{LEGAL_IDS.has(section.id) ? '§' : '◇'}</span>
+      <span className="cms-workspace-nav-icon" aria-hidden="true">{menuParent(section)?'↳':LEGAL_IDS.has(section.id) ? '§' : '◇'}</span>
       <span className="cms-workspace-nav-text">{section.nav_label || section.title}</span>
       <span className={`cms-workspace-nav-dot ${isPublished(section) ? 'is-published' : ''}`} aria-hidden="true" />
     </button>
@@ -69,7 +71,7 @@ export function CMSWorkspace({
 
         <div className="cms-workspace-sidebar-bottom">
           <p>Das Design bleibt.<br />Die Inhalte sind in Ihrer Hand.</p>
-          <button type="button" onClick={onLogout}>Abmelden <span aria-hidden="true">↗</span></button>
+          <IconButton icon="logout" label="Abmelden" onClick={onLogout}/>
         </div>
       </aside>
 
@@ -77,7 +79,7 @@ export function CMSWorkspace({
         <header className="cms-workspace-topbar">
           <div className="cms-workspace-breadcrumb">Workspace <span>/</span> <strong>FREIBERGER.DESIGN</strong></div>
           <div className="cms-workspace-top-actions">
-            <button type="button" className="cms-workspace-site-link" onClick={onOpenWebsite}>Website ansehen <span aria-hidden="true">↗</span></button>
+            <IconButton icon="external" label="Website ansehen" onClick={onOpenWebsite}/>
             <span className="cms-workspace-avatar" aria-label="Administrator">WF</span>
           </div>
         </header>
@@ -89,9 +91,7 @@ export function CMSWorkspace({
               <h1>Raum für Ihre Inhalte.</h1>
               <p>Wählen Sie einen Bereich und bearbeiten Sie die Inhalte Ihrer Website.</p>
             </div>
-            <button type="button" className="cms-workspace-button cms-workspace-button-primary" onClick={onCreate}>
-              <span aria-hidden="true">＋</span> Neuen Bereich anlegen
-            </button>
+            <IconButton icon="plus" label="Neuen Bereich anlegen" onClick={onCreate}/>
           </div>
 
           <div className="cms-workspace-statusline">
@@ -149,13 +149,17 @@ export function CMSWorkspace({
                     </div>
                   )}
                   <div className="cms-workspace-field">
+                    <span>Menüzuordnung</span>
+                    <strong>{menuParent(selected)==='@projects'?'Unter Projekte':menuParent(selected)?'Unter '+(sections.find(p=>p.id===menuParent(selected))?.nav_label||menuParent(selected)):'Hauptmenü'}</strong>
+                  </div>
+                  <div className="cms-workspace-field">
                     <span>Bereichs-ID</span>
                     <code>{selected.id}</code>
                   </div>
                   <div className="cms-workspace-actions">
-                    <button type="button" className="cms-workspace-button cms-workspace-button-primary" onClick={() => onEdit(selected)}>Inhalt bearbeiten <span aria-hidden="true">↗</span></button>
+                    <IconButton icon="edit" label="Inhalt bearbeiten" onClick={() => onEdit(selected)}/>
                     {!selectedIsLegal && selected.id !== 'home' && selected.id !== 'kontakt' && (
-                      <button type="button" className="cms-workspace-button cms-workspace-button-danger" onClick={() => onDelete(selected)}>Bereich löschen</button>
+                      <IconButton icon="trash" danger label="Bereich löschen" onClick={() => onDelete(selected)}/>
                     )}
                   </div>
                 </div>
@@ -168,8 +172,8 @@ export function CMSWorkspace({
               <header className="cms-workspace-preview-head">
                 <div><i aria-hidden="true" /> <strong>Inhaltsvorschau</strong></div>
                 <div className="cms-workspace-devices" role="group" aria-label="Vorschaubreite">
-                  <button type="button" className={previewWidth === 'desktop' ? 'is-active' : ''} aria-label="Desktop-Vorschau" aria-pressed={previewWidth === 'desktop'} onClick={() => setPreviewWidth('desktop')}>▱</button>
-                  <button type="button" className={previewWidth === 'mobile' ? 'is-active' : ''} aria-label="Mobil-Vorschau" aria-pressed={previewWidth === 'mobile'} onClick={() => setPreviewWidth('mobile')}>▯</button>
+                  <IconButton icon="monitor" className={previewWidth === 'desktop' ? 'is-active' : ''} label="Desktop-Vorschau" aria-pressed={previewWidth === 'desktop'} onClick={() => setPreviewWidth('desktop')}/>
+                  <IconButton icon="phone" className={previewWidth === 'mobile' ? 'is-active' : ''} label="Mobil-Vorschau" aria-pressed={previewWidth === 'mobile'} onClick={() => setPreviewWidth('mobile')}/>
                 </div>
               </header>
               <p className="cms-workspace-preview-note">Gespeicherter Inhalt · Originalgestaltung</p>
@@ -177,7 +181,7 @@ export function CMSWorkspace({
                 {selected ? (
                   <iframe
                     className="cms-website-frame"
-                    key={selected.id + ':' + selected.updated_at + ':' + selected.content.length + ':' + selected.image_layout + ':' + selected.image_url + ':' + selected.bg_image_url}
+                    key={selected.id + ':' + selected.updated_at + ':' + selected.content.length + ':' + selected.image_layout + ':' + selected.image_url + ':' + selected.bg_image_url + ':' + JSON.stringify(selected.content_blocks)}
                     title={'Webseitenvorschau: ' + selected.title}
                     src={'/cms/preview/' + encodeURIComponent(selected.id)}
                   />
@@ -185,7 +189,7 @@ export function CMSWorkspace({
               </div>
               <footer className="cms-workspace-preview-foot">
                 <span>{language.toUpperCase()} · {published ? 'Veröffentlicht' : 'Entwurf'}</span>
-                <button type="button" onClick={onOpenWebsite}>Zur Website <span aria-hidden="true">↗</span></button>
+                <IconButton icon="external" label="Zur Website" onClick={onOpenWebsite}/>
               </footer>
             </aside>
           </div>
