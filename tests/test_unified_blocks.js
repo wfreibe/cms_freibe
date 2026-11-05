@@ -3,7 +3,7 @@ const assert=require('assert/strict'),{JSDOM}=require('jsdom');
 const {fs,path,root,run,temp}=require('./helpers');
 (async()=>{
  const dir=temp(),dom=new JSDOM('<div id="test"></div>',{url:'http://localhost'});
- global.window=dom.window;global.document=dom.window.document;global.DOMParser=dom.window.DOMParser;global.navigator=dom.window.navigator;global.crypto=require('crypto').webcrypto;
+ global.window=dom.window;global.document=dom.window.document;global.DOMParser=dom.window.DOMParser;Object.defineProperty(global,'navigator',{configurable:true,value:dom.window.navigator});Object.defineProperty(global,'crypto',{configurable:true,value:require('crypto').webcrypto});
  window.matchMedia=()=>({matches:false,addEventListener(){},removeEventListener(){}});
  try{
   require('../frontend/node_modules/esbuild').buildSync({stdin:{contents:"export {ContentBlocks} from './src/components/ContentBlocks';export {unifiedBlocks} from './src/utils/unifiedBlocks';export {render,h} from 'preact';",resolveDir:path.join(root,'frontend')},bundle:true,jsx:'automatic',jsxImportSource:'preact',platform:'node',format:'cjs',outfile:path.join(dir,'components.cjs'),loader:{'.css':'empty'},logLevel:'silent'});
