@@ -13,7 +13,7 @@ Workflow: .github/workflows/deploy.yml.
 
 Ein eigener Ed25519-Schlüssel wurde lokal im ignorierten tmp-Bereich erzeugt und verschlüsselt als Environment-Secret DEPLOY_SSH_KEY hinterlegt. Nur dessen öffentlicher Schlüssel wird in die autorisierten Schlüssel des SSH-Kontos eingetragen. DEPLOY_KNOWN_HOSTS enthält den bereits lokal verifizierten Hostschlüssel. Bei einem Hostschlüsselwechsel bricht das Deployment ab; keinen unbekannten Schlüssel automatisch übernehmen.
 
-Nicht geheime Environment-Variablen: DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH und DEPLOY_PHP. DEPLOY_PHP muss ein auf dem Zielserver tatsächlich geprüfter absoluter PHP-Pfad ab Version 8.2 mit PDO_SQLite, mbstring, GD und ZIP sein. Der Standardbefehl php war dort PHP 7.4 und wird nicht verwendet.
+Nicht geheime Environment-Variablen: DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH und DEPLOY_PHP. DEPLOY_PHP muss ein auf dem Zielserver tatsächlich geprüfter absoluter PHP-Pfad ab Version 8.4 mit PDO_SQLite, mbstring, GD und ZIP sein. Der Standardbefehl php war dort PHP 7.4 und wird nicht verwendet.
 
 Der öffentliche Schlüssel wurde auf dem Server freigegeben. /usr/bin/php84 (PHP 8.4.27) wurde mit PDO_SQLite, mbstring, GD und ZIP geprüft und wird für das Deployment verwendet. Keine Passwörter in Chat, Quellcode oder Workflow eintragen.
 
