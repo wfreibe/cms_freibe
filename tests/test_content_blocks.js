@@ -80,6 +80,18 @@ const {fs,path,crypto,root,baseEnv,run,php,temp,server,stop,snapshot}=require('.
   response=await write({content_blocks:[blocks[0]]});assert.equal(response.status,200);
   const create=await request('/api/sections',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({id:'modular-new',lang:'de',title:'Neue Seite',nav_label:'Neue Seite',is_published:1,content_blocks:[blocks[1]]})});
   assert.equal(create.status,201,await create.clone().text());assert.equal((await create.json()).section.content_blocks[0].type,'text');
+
+  const unified=[
+   {id:'unified_text',type:'text',enabled:true,data:{html:'<p>Übernommen</p>',layout:{group:'frame',html:'<div class="ui container"><span class="cms-slot-unified_text"></span><script>evil()</script></div>',slots:['unified_text'],lead:'',mode:'original'}}},
+   {id:'unified_topics',type:'accordion',enabled:true,data:{items:[{id:'acc_visible',title:'Sichtbar',html:'<p>Öffentlich</p>',enabled:true},{id:'acc_hidden',title:'Geheim',html:'<p>Nicht öffentlich</p>',enabled:false}]}}
+  ];
+  response=await write({content_blocks:unified,bg_image_url:'/media/background.jpg'});assert.equal(response.status,200);
+  const unifiedPublic=await(await publicRead()).json();assert.equal(unifiedPublic.content_blocks[0].data.layout.group,'frame');assert(!unifiedPublic.content_blocks[0].data.layout.html.includes('script'));assert.equal(unifiedPublic.bg_image_url,'/media/background.jpg');
+  assert.deepEqual(unifiedPublic.content_blocks[1].data.items.map(i=>i.id),['acc_visible']);
+  const unifiedAdmin=await(await request('/api/sections/blocks-test?lang=de&preview=1')).json();assert.equal(unifiedAdmin.content_blocks[1].data.items.length,2);assert.equal(unifiedAdmin.content,initial);
+  for(const layout of [{},'bad',{...unified[0].data.layout,slots:[{}]},{...unified[0].data.layout,slots:['same','same']}]){
+   response=await write({content_blocks:[{...unified[0],data:{...unified[0].data,layout}}]});assert.equal(response.status,400);
+  }
   response=await write({is_published:0});assert.equal(response.status,200);assert.equal((await publicRead()).status,404);assert.equal((await request('/api/sections/blocks-test?lang=de&preview=1')).status,200);
   console.log('Content blocks passed: additive migration, legacy preservation, auth/CSRF, typed roundtrip, XSS/URL rejection, hidden/public separation, partial edits, order, removal/recovery and new pages.');
  } finally {await stop(api);assert.deepEqual(snapshot(path.join(root,'data')),before,'Live local runtime was modified by tests');fs.rmSync(dir,{recursive:true,force:true});}

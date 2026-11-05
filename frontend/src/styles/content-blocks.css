@@ -50,3 +50,9 @@
 .legacy-panel-removal p{font-size:12px;line-height:1.6;margin:0 0 10px}
 .legacy-panel-removal button{min-height:40px;padding:8px 12px;margin:0 8px 0 0;border:1px solid #a5bac4;border-radius:4px;background:#fff;color:#14303e;cursor:pointer}
 .legacy-panel-removal button:first-of-type{border-color:#a01838;color:#a01838}
+
+.page-design-settings{border:1px solid #cbd9df;border-radius:5px;margin:16px 0;padding:12px}.page-design-settings>summary{cursor:pointer;font-size:13px;font-weight:600}.page-design-settings[open]>summary{margin-bottom:16px}.is-editor-preview .unified-layout:not(.has-page-background){background:#111316;color:#edf0f2!important;padding:16px}.is-editor-preview .unified-layout:not(.has-page-background) :is(p,h1,h2,h3,h4,ul,ol,li){color:#edf0f2}.unified-layout .ui.stackable.grid:has(>.ten.wide.column):not(:has(>.six.wide.column)){grid-template-columns:1fr}
+
+.block-editor-overview{grid-template-columns:auto minmax(0,1fr);column-gap:8px}.block-editor-overview strong{white-space:nowrap}.block-editor-description{grid-column:1/-1}
+
+.block-editor-add label{color:#14303e}

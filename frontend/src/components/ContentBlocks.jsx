@@ -27,6 +27,7 @@ export function YouTubeBlock({data}) {
 
 function ImageBlock({data,pageId}) {
   const o={...imageDefaults,...data.options};
+  if(data.raw_image&&localImage(data.src)){const doc=new DOMParser().parseFromString(data.raw_image,'text/html');const img=doc.querySelector('img');if(img){img.setAttribute('src',data.src);if(img.hasAttribute('alt')||data.alt)img.setAttribute('alt',data.alt||'');return <WebsiteContent html={img.outerHTML} pageId={pageId}/>;}}
   return <div className={'block-image-layout '+(localImage(data.src)&&o.layout==='beside'?'block-image-beside ':'')+(o.align==='right'?'block-image-right':'')}>
     {localImage(data.src)&&<div className="block-image-column"><figure style={{width:o.width+'%',marginLeft:o.align==='left'?0:'auto',marginRight:o.align==='right'?0:'auto'}}>
       <img src={data.src} alt={data.alt||''} loading="lazy" decoding="async" style={{aspectRatio:o.format==='original'?'auto':o.format.replace(':',' / '),height:'auto',objectFit:o.format==='original'?'contain':'cover',objectPosition:o.focus_x+'% '+o.focus_y+'%'}}/>
@@ -36,32 +37,34 @@ function ImageBlock({data,pageId}) {
   </div>;
 }
 
-/** Also used by the unsaved editor preview, with identical order and visibility. */
+/** Original layout scaffolds contain only sanitized slots; elements remain independent. */
 export function ContentBlocks({page,preview=false}) {
-  const blocks=pageBlocks(page.content_blocks);
-  const background=backgroundAppearance(page.bg_color,page.bg_image_url);
-  const legal=['legalnotice','dsgvo','impressum','datenschutz'].includes(page.id);
-  return <div className={'content-blocks'+(preview?' is-editor-preview':'')}>
-    {blocks.filter(b=>b.enabled).map(block=>{
-      const d=block.data||{};
-      if(block.type==='legacy')return <div key={block.id} className="content-block block-legacy" data-block-id={block.id}>
-        <PageImageLayout src={!legal?page.image_url:null} alt={page.title||''} mode={page.image_layout}>
-          <div className={'page-copy '+(page.id==='home'?'home-content':legal?'legal-content':'article-content')+(Object.keys(background).length?' has-page-background':'')} style={background}>
-            <WebsiteContent html={page.content||''} pageId={page.id}/>
-            {(page.accordions||[]).length>0&&<SectionAccordions accordions={page.accordions}/>}
-          </div>
-        </PageImageLayout>
-      </div>;
-      return <section key={block.id} className={'content-block block-'+block.type} data-block-id={block.id}>
-        {d.title&&<h2>{d.title}</h2>}
-        {block.type==='text'&&<WebsiteContent html={d.html||''} pageId={page.id}/>}
-        {block.type==='image'&&<ImageBlock data={d} pageId={page.id}/>}
-        {block.type==='slideshow'&&<Slideshow images={(d.images||[]).filter(i=>localImage(i.src))} options={{'slide-duration':(d.interval||5)*1000,'effect-speed':800,fullscreen:'true'}}/>}
-        {block.type==='accordion'&&<div className="block-accordion">{(d.items||[]).map(item=><details key={item.id}><summary>{item.title||'Thema'}</summary><WebsiteContent html={item.html||''} pageId={page.id}/></details>)}</div>}
-        {block.type==='youtube'&&<YouTubeBlock key={youtubeId(d.video)} data={d}/>}
-        {block.type==='audio'&&localAudio(d.src)&&<figure><audio key={d.src} controls preload="none" src={d.src} aria-label={d.title||'Audio'} /><figcaption>{d.caption}</figcaption></figure>}
-        {block.type==='link'&&safeBlockLink(d.href)&&<a className={d.style==='button'?'block-button':'block-link'} href={safeBlockLink(d.href)}>{d.label||d.title||'Link öffnen'} <span aria-hidden="true">↗</span></a>}
-      </section>;
-    })}
-  </div>;
+ const blocks=pageBlocks(page.content_blocks).filter(b=>b.enabled);
+ const background=backgroundAppearance(page.bg_color,page.bg_image_url);
+ const legal=['legalnotice','dsgvo','impressum','datenschutz'].includes(page.id);
+ const copyClass='page-copy '+(page.id==='home'?'home-content':legal?'legal-content':'article-content')+(Object.keys(background).length?' has-page-background':'');
+ const render=(block,bare=false)=>{
+  const d=block.data||{};let content;
+  if(block.type==='legacy')return <div key={block.id} className="content-block block-legacy"><PageImageLayout src={!legal?page.image_url:null} alt={page.title||''} mode={page.image_layout}><div className={copyClass} style={background}><WebsiteContent html={page.content||''} pageId={page.id}/><SectionAccordions accordions={page.accordions||[]}/></div></PageImageLayout></div>;
+  if(block.type==='text')content=<WebsiteContent html={d.html||''} pageId={page.id}/>;
+  if(block.type==='image')content=<ImageBlock data={d} pageId={page.id}/>;
+  if(block.type==='slideshow')content=<Slideshow images={(d.images||[]).filter(i=>localImage(i.src))} options={d.options||{'slide-duration':(d.interval||5)*1000,'effect-speed':800,fullscreen:'true'}}/>;
+  if(block.type==='accordion')content=<SectionAccordions accordions={(d.items||[]).filter(i=>i.enabled!==false).map(i=>({...i,content:i.html}))}/>;
+  if(block.type==='youtube')content=<YouTubeBlock key={youtubeId(d.video)} data={d}/>;
+  if(block.type==='audio'&&localAudio(d.src))content=<figure><audio controls preload="none" src={d.src} aria-label={d.title||'Audio'}/><figcaption>{d.caption}</figcaption></figure>;
+  if(block.type==='link'&&safeBlockLink(d.href))content=<a className={d.style==='button'?'block-button':'block-link'} href={safeBlockLink(d.href)}>{d.label||d.title||'Link öffnen'} <span aria-hidden="true">↗</span></a>;
+  const inside=<>{d.title&&<h2>{d.title}</h2>}{content}</>;
+  return bare?inside:<section key={block.id} className={'content-block block-'+block.type} data-block-id={block.id}>{Object.keys(background).length?<div className={copyClass} style={background}>{inside}</div>:inside}</section>;
+ };
+ const output=[];
+ for(let index=0;index<blocks.length;){
+  const first=blocks[index],layout=first.data?.layout;
+  if(!layout){output.push(render(first));index++;continue;}
+  const group=[];while(index<blocks.length&&blocks[index].data?.layout?.group===layout.group)group.push(blocks[index++]);
+  const lead=group[0]?.id===layout.lead?group.shift():null;
+  const slots={};layout.slots.forEach((id,i)=>{slots[id]=group[i]?render(group[i],true):null;});
+  const copy=<div className={copyClass+' unified-layout'} style={background}><WebsiteContent html={layout.html} pageId={page.id} slots={slots}/>{group.slice(layout.slots.length).map(b=>render(b,true))}</div>;
+  output.push(<div className="content-block block-legacy" key={layout.group+'-'+first.id}>{lead?<PageImageLayout src={lead.data.src} alt={lead.data.alt||''} mode={layout.mode} options={lead.data.options}>{copy}</PageImageLayout>:copy}</div>);
+ }
+ return <div className={'content-blocks'+(preview?' is-editor-preview':'')}>{output}</div>;
 }

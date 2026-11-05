@@ -1,5 +1,5 @@
 import {menuParent} from '../utils/navigation';
-import {IconButton} from './CmsActions';
+import {CmsIcon,IconButton} from './CmsActions';
 import { useState } from 'preact/hooks';
 
 const LEGAL_IDS = new Set(['impressum', 'datenschutz']);
@@ -22,8 +22,6 @@ export function CMSWorkspace({
   onLanguageChange,
   onEdit,
   onCreate,
-  onTogglePublished,
-  onToggleNavigation,
   onDelete,
   onOpenWebsite,
   onLogout
@@ -89,7 +87,7 @@ export function CMSWorkspace({
             <div>
               <span className="cms-workspace-eyebrow">WENIG TECHNIK. VIEL FREIRAUM.</span>
               <h1>Raum für Ihre Inhalte.</h1>
-              <p>Wählen Sie einen Bereich und bearbeiten Sie die Inhalte Ihrer Website.</p>
+              <p>Wählen Sie eine Seite für die Übersicht oder öffnen Sie ihren Editor.</p>
             </div>
             <IconButton icon="plus" label="Neuen Bereich anlegen" onClick={onCreate}/>
           </div>
@@ -100,13 +98,14 @@ export function CMSWorkspace({
           </div>
 
           <div className="cms-workspace-grid">
-            <section className="cms-workspace-card cms-workspace-details" aria-label="Bereich verwalten">
+            <section className="cms-workspace-card cms-workspace-details" aria-label="Seitenübersicht">
               <header className="cms-workspace-card-head">
                 <div>
-                  <span className="cms-workspace-eyebrow">INHALTE</span>
-                  <h2>{selected?.nav_label || 'Bereich auswählen'}</h2>
+                  <span className="cms-workspace-eyebrow">SEITENÜBERSICHT</span>
+                  <h2>{selected?.nav_label || 'Seite auswählen'}</h2>
+                  <p className="cms-overview-saved">Gespeicherter Stand</p>
                 </div>
-                <div className="cms-workspace-languages" role="group" aria-label="Bearbeitungssprache">
+                <div className="cms-workspace-languages" role="group" aria-label="Anzeigesprache">
                   <button type="button" className={language === 'de' ? 'is-active' : ''} aria-pressed={language === 'de'} onClick={() => onLanguageChange('de')}>DE</button>
                   <button type="button" className={language === 'en' ? 'is-active' : ''} aria-pressed={language === 'en'} onClick={() => onLanguageChange('en')}>EN</button>
                   <button type="button" className={language === 'fr' ? 'is-active' : ''} aria-pressed={language === 'fr'} onClick={() => onLanguageChange('fr')}>FR</button>
@@ -115,53 +114,22 @@ export function CMSWorkspace({
 
               {selected ? (
                 <div className="cms-workspace-card-body">
-                  <p className="cms-workspace-help">Die Details bearbeiten Sie im bestehenden CMS-Editor. Die Vorschau zeigt den aktuell gespeicherten Inhalt.</p>
-                  <div className="cms-workspace-field">
-                    <span>Menüpunkt</span>
-                    <strong>{selected.nav_label || '—'}</strong>
+                  <div className="cms-overview-editbar">
+                    <button type="button" className="cms-workspace-button cms-workspace-button-primary cms-overview-edit" onClick={()=>onEdit(selected)}><CmsIcon name="edit"/> Inhalt bearbeiten</button>
+                    <p>Änderungen nehmen Sie im Editor vor.</p>
                   </div>
-                  <div className="cms-workspace-field">
-                    <span>Überschrift</span>
-                    <strong>{selected.title || '—'}</strong>
-                  </div>
-                  <div className="cms-workspace-field">
-                    <span>Untertitel</span>
-                    <strong>{selected.subtitle || '—'}</strong>
-                  </div>
-                  <div className="cms-workspace-field cms-workspace-field-status">
-                    <span>Veröffentlichung</span>
-                    {selectedIsLegal ? (
-                      <span className={`cms-workspace-pill ${published ? 'is-on' : ''}`}>
-                        {published ? '● Veröffentlicht' : '○ Entwurf'}
-                      </span>
-                    ) : (
-                      <button type="button" className={`cms-workspace-pill ${published ? 'is-on' : ''}`} aria-label={`${selected.title}: ${published ? 'Veröffentlicht' : 'Entwurf'}. Status ändern`} onClick={() => onTogglePublished(selected)}>
-                        {published ? '● Veröffentlicht' : '○ Entwurf'}
-                      </button>
-                    )}
-                  </div>
-                  {!selectedIsLegal && (
-                    <div className="cms-workspace-field cms-workspace-field-status">
-                      <span>Hauptnavigation</span>
-                      <button type="button" className={`cms-workspace-pill ${inNavigation ? 'is-on' : ''}`} aria-label={`${selected.title}: ${inNavigation ? 'Im Menü' : 'Nicht im Menü'}. Status ändern`} onClick={() => onToggleNavigation(selected)}>
-                        {inNavigation ? '● Im Menü' : '○ Ausgeblendet'}
-                      </button>
-                    </div>
-                  )}
-                  <div className="cms-workspace-field">
-                    <span>Menüzuordnung</span>
-                    <strong>{menuParent(selected)==='@projects'?'Unter Projekte':menuParent(selected)?'Unter '+(sections.find(p=>p.id===menuParent(selected))?.nav_label||menuParent(selected)):'Hauptmenü'}</strong>
-                  </div>
-                  <div className="cms-workspace-field">
-                    <span>Bereichs-ID</span>
-                    <code>{selected.id}</code>
-                  </div>
-                  <div className="cms-workspace-actions">
-                    <IconButton icon="edit" label="Inhalt bearbeiten" onClick={() => onEdit(selected)}/>
-                    {!selectedIsLegal && selected.id !== 'home' && selected.id !== 'kontakt' && (
-                      <IconButton icon="trash" danger label="Bereich löschen" onClick={() => onDelete(selected)}/>
-                    )}
-                  </div>
+                  <dl className="cms-overview-facts">
+                    <div><dt>Menüpunkt</dt><dd>{selected.nav_label||'—'}</dd></div>
+                    <div><dt>Überschrift</dt><dd>{selected.title||'—'}</dd></div>
+                    <div><dt>Untertitel</dt><dd>{selected.subtitle||'Kein Untertitel'}</dd></div>
+                    <div className="cms-overview-status-row"><dt>Veröffentlichung</dt><dd><span className={'cms-overview-status'+(published?' is-on':'')}><i aria-hidden="true"/>{published?'Veröffentlicht':'Entwurf'}</span></dd></div>
+                    {!selectedIsLegal&&<div className="cms-overview-status-row"><dt>Hauptnavigation</dt><dd><span className={'cms-overview-status'+(inNavigation?' is-on':'')}><i aria-hidden="true"/>{inNavigation?'Im Menü':'Ausgeblendet'}</span></dd></div>}
+                    <div><dt>Menüzuordnung</dt><dd>{menuParent(selected)==='@projects'?'Unter Projekte':menuParent(selected)?'Unter '+(sections.find(p=>p.id===menuParent(selected))?.nav_label||menuParent(selected)):'Hauptmenü'}</dd></div>
+                  </dl>
+                  <details key={selected.id} className="cms-overview-technical"><summary>Weitere Angaben</summary>
+                    <dl><dt>Bereichs-ID</dt><dd><code>{selected.id}</code></dd></dl>
+                    {!selectedIsLegal&&selected.id!=='home'&&selected.id!=='kontakt'&&<button type="button" className="cms-workspace-button cms-workspace-button-danger" onClick={()=>onDelete(selected)}><CmsIcon name="trash"/> Seite löschen</button>}
+                  </details>
                 </div>
               ) : (
                 <div className="cms-workspace-card-body"><p>Für diese Sprache sind noch keine Bereiche angelegt.</p></div>
