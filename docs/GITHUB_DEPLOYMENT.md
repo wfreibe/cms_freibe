@@ -15,7 +15,7 @@ Ein eigener Ed25519-Schlüssel wurde lokal im ignorierten tmp-Bereich erzeugt un
 
 Nicht geheime Environment-Variablen: DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH und DEPLOY_PHP. DEPLOY_PHP muss ein auf dem Zielserver tatsächlich geprüfter absoluter PHP-Pfad ab Version 8.2 mit PDO_SQLite, mbstring, GD und ZIP sein. Der Standardbefehl php war dort PHP 7.4 und wird nicht verwendet.
 
-Der öffentliche Schlüssel wurde auf dem Server freigegeben. /usr/bin/php83 (PHP 8.3.36) wurde mit PDO_SQLite, mbstring, GD und ZIP geprüft und wird für das Deployment verwendet. Keine Passwörter in Chat, Quellcode oder Workflow eintragen.
+Der öffentliche Schlüssel wurde auf dem Server freigegeben. /usr/bin/php84 (PHP 8.4.27) wurde mit PDO_SQLite, mbstring, GD und ZIP geprüft und wird für das Deployment verwendet. Keine Passwörter in Chat, Quellcode oder Workflow eintragen.
 
 ## Daten und Sicherungen
 

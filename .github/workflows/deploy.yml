@@ -21,7 +21,7 @@ jobs:
           node-version: '22'
       - uses: shivammathur/setup-php@d52fc211a0436f8839a587b3b5b8efddab4744ea # v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           extensions: pdo_sqlite, mbstring, dom, gd, zip, sodium
           coverage: none
           tools: composer:v2
