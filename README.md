@@ -20,7 +20,7 @@ Portfolio-Webseite mit eigenem, modular aufgebautem CMS für Architektur und Web
 | PHP-Abhängigkeiten | Composer | Installation der Backend-Bibliotheken |
 | Hosting und Deployment | DomainFactory, Apache/PHP, GitHub Actions, SSH und rsync | Automatische Prüfung und Veröffentlichung |
 
-Node.js wird zum Entwickeln, Testen und Bauen benötigt. In Produktion laufen statische Frontend-Dateien und die PHP-API; dort wird kein Node.js- oder Vite-Prozess benötigt. Die CI verwendet Node.js 22 und PHP 8.4. Das Deployment setzt PHP ab 8.2 voraus und nutzt auf dem eingerichteten Server ausdrücklich `/usr/bin/php84`.
+Node.js wird zum Entwickeln, Testen und Bauen benötigt. In Produktion laufen statische Frontend-Dateien und die PHP-API; dort wird kein Node.js- oder Vite-Prozess benötigt. Die CI verwendet Node.js 22 und PHP 8.4. Das Deployment setzt PHP ab 8.4 voraus und nutzt auf dem eingerichteten Server ausdrücklich `/usr/bin/php84`.
 
 ## Frontend
 
@@ -96,7 +96,7 @@ YouTube wird erst nach ausdrücklichem Laden des Videos eingebunden. Dabei entst
 
 ## Lokal entwickeln
 
-Voraussetzungen: Node.js und npm, Composer sowie PHP mit PDO_SQLite, DOM, mbstring, Sessions, GD und ZIP. Für eine zur CI passende Umgebung Node.js 22 und PHP 8.4 verwenden.
+Voraussetzungen: Node.js und npm, Composer sowie PHP ab 8.4 mit PDO_SQLite, DOM, mbstring, Sessions, GD und ZIP. Für eine zur CI passende Umgebung Node.js 22 und PHP 8.4 verwenden.
 
 ```sh
 npm ci

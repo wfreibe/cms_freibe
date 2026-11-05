@@ -20,7 +20,7 @@ Das geprüfte Hosting-Paket liegt unter dist-packages/cms_sfreibe-deploy.zip. De
 
 ## DomainFactory: Verzeichnisstruktur
 
-Beide Ordner als Geschwister übertragen. Die Domain muss ausschließlich auf webroot/ zeigen. server/ darf nicht öffentlich erreichbar sein. PHP 8.2 oder neuer mit PDO_SQLite, mbstring und GD verwenden. Apache benötigt mod_rewrite und AllowOverride für die mitgelieferte .htaccess. HTTPS aktivieren.
+Beide Ordner als Geschwister übertragen. Die Domain muss ausschließlich auf webroot/ zeigen. server/ darf nicht öffentlich erreichbar sein. PHP 8.4 oder neuer mit PDO_SQLite, mbstring und GD verwenden. Apache benötigt mod_rewrite und AllowOverride für die mitgelieferte .htaccess. HTTPS aktivieren.
 
 server/config/cms_config.sample.php privat nach cms_config.php kopieren. Absolute private Pfade für Datenbank, Sitzungen und Backups prüfen; cookie_secure bleibt true. Keine lokalen HTTP-Einstellungen übernehmen. PHP benötigt Schreibrechte auf die privaten Daten-, Upload-, Session- und Backupverzeichnisse. Keine pauschalen 777-Rechte verwenden.
 
