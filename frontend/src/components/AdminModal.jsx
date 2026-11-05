@@ -1,3 +1,6 @@
+import {legacyPartPresence,clearLegacyPart} from '../utils/legacyParts';
+import {readGalleries} from '../utils/slideshowContent';
+import slideshowMetadata from '../slideshows.json';
 import {MenuParentField} from './MenuParentField';
 import {menuParent} from '../utils/navigation';
 import {BackgroundColorPicker} from './BackgroundColorPicker';
@@ -492,6 +495,9 @@ export function AdminModal() {
   };
 
   if (!activeEditSection) return null;
+  const legacyPresence=legacyPartPresence(form);
+  const legacyImageCount=readGalleries(form.content,activeEditSection.id,slideshowMetadata).reduce((n,images)=>n+images.length,0);
+
 
   return (
     <div className="modal-overlay cms-editor-overlay" onClick={() => setActiveEditSection(null)}>
@@ -556,10 +562,12 @@ export function AdminModal() {
               />
             </div>
 
-            <ContentBlocksEditor key={activeEditSection.id+':blocks:'+language} blocks={form.content_blocks} onChange={content_blocks=>setForm(prev=>({...prev,content_blocks}))} csrfToken={csrfToken} onBusyChange={setUploadBusy} busy={uploadBusy} legacyEditor={<>
+            <ContentBlocksEditor key={activeEditSection.id+':blocks:'+language} blocks={form.content_blocks} onChange={content_blocks=>setForm(prev=>({...prev,content_blocks}))} csrfToken={csrfToken} onBusyChange={setUploadBusy} busy={uploadBusy} legacyPage={form} legacyPanels={[
+{id:'image',title:'Seitenbild',detail:form.image_url?'Bild hinterlegt':'Kein Seitenbild',visible:!isLegalPage,content:<>
             {!isLegalPage && <SectionImageUpload key={activeEditSection.id+':image:'+language} layout={form.image_layout} onLayoutChange={image_layout=>setForm(prev=>({...prev,image_layout}))} value={form.image_url} onChange={image_url=>setForm(prev=>({...prev,image_url}))} csrfToken={csrfToken} onBusyChange={setUploadBusy} disabled={uploadBusy} />}
 
-            {/* Hintergrund-Design: Farbe & Vollbreite Bild */}
+            </>},
+{id:'background',title:'Hintergrund',detail:form.bg_image_url?'Hintergrundbild hinterlegt':form.bg_color||'Wie Webseite',visible:!isLegalPage,content:<>{/* Hintergrund-Design: Farbe & Vollbreite Bild */}
             {!isLegalPage && (
               <div className="admin-bg-settings-card">
                 <strong className="cms-background-heading">{t('sectionBgDesignTitle')}</strong>
@@ -570,9 +578,11 @@ export function AdminModal() {
               </div>
             )}
 
-            <SlideshowEditor key={activeEditSection.id + ':' + language} html={form.content} pageId={activeEditSection.id} csrfToken={csrfToken} onChange={content => setForm(prev => ({...prev,content}))} onBusyChange={setUploadBusy} />
+            </>},
+{id:'slideshow',title:'Slideshow',detail:legacyImageCount+' '+(legacyImageCount===1?'Bild':'Bilder'),visible:true,content:<><SlideshowEditor key={activeEditSection.id + ':' + language} html={form.content} pageId={activeEditSection.id} csrfToken={csrfToken} onChange={content => setForm(prev => ({...prev,content}))} onBusyChange={setUploadBusy} />
 
-            {/* Sektionstext */}
+            </>},
+{id:'text',title:'Text',detail:'Text und Formatierung',visible:true,content:<>{/* Sektionstext */}
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                 <label style={{ margin: 0 }}><strong>{t('sectionContent')}</strong></label>
@@ -596,7 +606,8 @@ export function AdminModal() {
               <RichTextEditor key={activeEditSection.id+':'+language} sourceRef={mainContentRef} value={form.content} onChange={content=>setForm(prev=>({...prev,content}))} />
             </div>
 
-            {/* Kontaktdaten-Box Bearbeitung (nur für Sektion Kontakt) */}
+            </>},
+{id:'contact',title:'Kontaktdaten',detail:'Adresse und Kontaktdaten',visible:activeEditSection.id==='kontakt',content:<>{/* Kontaktdaten-Box Bearbeitung (nur für Sektion Kontakt) */}
             {activeEditSection.id === 'kontakt' && (
               <div className="admin-contact-box-section">
                 <div className="admin-contact-box-header">
@@ -692,7 +703,8 @@ export function AdminModal() {
               </div>
             )}
 
-            {/* Aufklappbare Unterthemen (Akkordeons) für Praxisbeispiele */}
+            </>},
+{id:'accordions',title:'Akkordeons',detail:(form.accordions||[]).length+' '+((form.accordions||[]).length===1?'Thema':'Themen'),visible:!isLegalPage&&activeEditSection.id!=='kontakt',content:<>{/* Aufklappbare Unterthemen (Akkordeons) für Praxisbeispiele */}
             {!isLegalPage && activeEditSection.id !== 'kontakt' && (
               <div className="admin-accordions-section">
                 <div className="admin-accordions-header">
@@ -797,7 +809,8 @@ export function AdminModal() {
               </div>
             )}
 
-            </>}/>
+</>}
+].filter(panel=>panel.visible).map(panel=>({...panel,canRemove:legacyPresence[panel.id],onRemove:()=>{setForm(prev=>({...prev,...clearLegacyPart(prev,panel.id)}));setActiveLinkHelper(null);}}))}/>
 
             {/* Status Veröffentlicht / Entwurf */}
             <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '15px 0' }}>
