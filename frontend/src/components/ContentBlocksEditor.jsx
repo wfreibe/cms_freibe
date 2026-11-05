@@ -1,5 +1,6 @@
-import {CmsIcon,IconButton} from './CmsActions';
-import {useRef,useState} from 'preact/hooks';
+import {blockSummary} from '../utils/blockSummary';
+import {IconButton} from './CmsActions';
+import {useEffect,useRef,useState} from 'preact/hooks';
 import {RichTextEditor} from './RichTextEditor';
 import {SectionImageUpload} from './SectionImageUpload';
 import {SectionImageOptions} from './SectionImageOptions';
@@ -34,7 +35,7 @@ function BlockFields({block,onChange,csrfToken,onBusyChange,busy}) {
       <IconButton icon="plus" label="Thema hinzufügen" disabled={(d.items||[]).length>=50} onClick={()=>set('items',[...(d.items||[]),{id:blockId(),title:'Neues Thema',html:''}])}/>
     </>}
     {block.type==='youtube'&&<>
-      <label>YouTube-Adresse oder Video-ID<input value={d.video||''} maxLength={500} onInput={e=>set('video',e.target.value)} placeholder="https://www.youtube.com/watch?v=…"/></label>
+      <label>YouTube-Adresse oder Video-ID<input value={d.video||''} maxLength={500} ref={el=>el?.setCustomValidity(d.video&&!youtubeId(d.video)?'Bitte eine gültige YouTube-Adresse oder Video-ID eingeben.':'')} onInput={e=>set('video',e.target.value)} placeholder="https://www.youtube.com/watch?v=…"/></label>
       {d.video&&!youtubeId(d.video)&&<p role="alert">Die YouTube-Adresse ist noch nicht gültig.</p>}
       <p className="block-editor-hint">Das Video wird erst geladen, wenn Besucher „YouTube-Video laden“ wählen. Ein eigenes Vorschaubild ist optional.</p>
       {image('cover')}
@@ -53,34 +54,75 @@ function BlockFields({block,onChange,csrfToken,onBusyChange,busy}) {
   </div>;
 }
 
-export function ContentBlocksEditor({blocks,onChange,csrfToken,onBusyChange,busy=false,legacyEditor}) {
+export function ContentBlocksEditor({blocks,onChange,csrfToken,onBusyChange,busy=false,legacyEditor,legacyPage={},legacyPanels=[]}) {
   const [type,setType]=useState('text'),[message,setMessage]=useState('');
+  const [openIds,setOpenIds]=useState(()=>new Set());
+  const [pendingPanel,setPendingPanel]=useState(null);
+  const editor=useRef(null),focusingInvalid=useRef(false),reportingInvalid=useRef(null);
   const dragging=useRef(null),latest=useRef(blocks);latest.current=blocks;
+  const focusPanel=key=>requestAnimationFrame(()=>editor.current?.querySelector('[data-disclosure-key="'+key+'"] .legacy-panel-toggle')?.focus());
+  const panelKeys=block=>block.type==='legacy'&&legacyPanels.length?legacyPanels.map(panel=>block.id+'--'+panel.id):[block.id];
+  const errorKey=el=>el.closest('[data-disclosure-key]')?.dataset.disclosureKey||el.closest('[data-block-id]')?.dataset.blockId;
+  const toggle=id=>setOpenIds(prev=>{const next=new Set(prev);next.has(id)?next.delete(id):next.add(id);return next;});
+  const revealError=event=>{
+    if(reportingInvalid.current===event.target)return;
+    const key=errorKey(event.target);if(!key)return;
+    event.preventDefault();
+    setOpenIds(prev=>prev.has(key)?prev:new Set([...prev,key]));
+    if(!focusingInvalid.current){
+      focusingInvalid.current=true;const target=event.target;
+      requestAnimationFrame(()=>{try{if(target.isConnected){target.focus();reportingInvalid.current=target;target.reportValidity();}}finally{reportingInvalid.current=null;focusingInvalid.current=false;}});
+    }
+  };
+  useEffect(()=>{
+    const node=editor.current;if(!node)return;
+    const revealAlerts=()=>{
+      const ids=[...node.querySelectorAll('[role="alert"]')].filter(el=>el.textContent.trim()).map(errorKey).filter(Boolean);
+      if(ids.length)setOpenIds(prev=>ids.every(id=>prev.has(id))?prev:new Set([...prev,...ids]));
+    };
+    const observer=new MutationObserver(revealAlerts);observer.observe(node,{childList:true,subtree:true,characterData:true});revealAlerts();
+    return()=>observer.disconnect();
+  },[]);
+
   const update=(id,patch)=>onChange(latest.current.map(b=>b.id===id?{...b,data:{...b.data,...patch}}:b));
   const move=(from,to)=>{onChange(moveBlock(latest.current,from,to));setMessage('Baustein auf Position '+(to+1)+' verschoben.');};
-  const add=()=>{if(latest.current.length>=50)return;onChange([...latest.current,createBlock(type)]);setMessage('Baustein hinzugefügt. Zum Übernehmen die Seite speichern.');};
-  return <section className="block-editor" aria-label="Inhaltsbausteine bearbeiten">
-    <h3>Inhaltsbausteine</h3>
+  const add=()=>{if(latest.current.length>=50)return;const block=createBlock(type);setOpenIds(prev=>new Set([...prev,...panelKeys(block)]));onChange([...latest.current,block]);setMessage('Baustein hinzugefügt. Zum Übernehmen die Seite speichern.');};
+  return <section ref={editor} className="block-editor" aria-label="Inhaltsbausteine bearbeiten" onInvalidCapture={revealError}>
+    <div className="block-editor-heading"><h3>Inhaltsbausteine</h3><div className="block-editor-disclosures" role="group" aria-label="Bausteine auf- und zuklappen">
+      <button type="button" disabled={busy||!blocks.length} onClick={()=>setOpenIds(new Set(blocks.flatMap(panelKeys)))}>Alle aufklappen</button>
+      <button type="button" disabled={busy||!blocks.length} onClick={()=>setOpenIds(new Set())}>Alle zuklappen</button>
+    </div></div>
     <p className="block-editor-hint">Die Seite wird in dieser Reihenfolge aufgebaut. Bausteine am Griff ziehen oder mit den Pfeilen verschieben. Alle Änderungen erscheinen sofort in der Vorschau.</p>
     <p className="cms-icon-legend">Symbole: Maus darüber halten oder mit der Tab-Taste auswählen, um die Erklärung zu sehen.</p><p role="status" className="block-editor-hint">{message}</p>
     {blocks.length===0&&<p className="block-editor-empty">Noch keine sichtbaren Inhaltsbausteine eingerichtet. Unten einen Baustein hinzufügen.</p>}
     <ol className="block-editor-list">
-      {blocks.map((block,index)=><li key={block.id} className={'block-editor-card'+(!block.enabled?' is-hidden':'')} data-block-id={block.id}
+      {blocks.map((block,index)=>{const summary=blockSummary(block,legacyPage);const open=openIds.has(block.id);const isLegacy=block.type==='legacy'&&legacyPanels.length>0;return <li key={block.id} className={'block-editor-card'+(!block.enabled?' is-hidden':'')} data-block-id={block.id}
         onDragOver={e=>{if(dragging.current&&!busy){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
         onDrop={e=>{if(!dragging.current||busy)return;e.preventDefault();e.stopPropagation();const from=latest.current.findIndex(b=>b.id===dragging.current);move(from,index);dragging.current=null;}}>
         <div className="block-editor-bar">
           <IconButton icon="drag" draggable={!busy} disabled={busy} label={'Baustein '+(index+1)+' ziehen zum Sortieren'} onDragStart={e=>{dragging.current=block.id;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',block.id);}} onDragEnd={()=>{dragging.current=null;}}/>
-          <strong>{index+1}. {blockTypes.find(([v])=>v===block.type)?.[1]||block.type}{!block.enabled?' · ausgeblendet':''}</strong>
+          {isLegacy?<div className="legacy-group-heading"><strong>{index+1}. Bisherige Inhalte</strong><span>{summary.title}</span></div>:<button type="button" className="block-editor-toggle" disabled={busy} aria-expanded={open} aria-controls={'block-fields-'+block.id} onClick={()=>toggle(block.id)}>
+            <span className="block-editor-chevron" aria-hidden="true">{open?'▾':'▸'}</span>
+            <span className="block-editor-overview"><strong>{index+1}. {blockTypes.find(([v])=>v===block.type)?.[1]||block.type}{!block.enabled?' · ausgeblendet':''}</strong><span className="block-editor-title">{summary.title}</span><span className="block-editor-description">{summary.detail}</span></span>
+          </button>}
           <IconButton icon="up" disabled={busy||index===0} label={'Baustein '+(index+1)+' nach oben'} onClick={()=>move(index,index-1)}/>
           <IconButton icon="down" disabled={busy||index===blocks.length-1} label={'Baustein '+(index+1)+' nach unten'} onClick={()=>move(index,index+1)}/>
           <IconButton icon={block.enabled?'eye':'eyeOff'} label={'Baustein '+(index+1)+(block.enabled?' ausblenden':' einblenden')} disabled={busy} aria-pressed={!block.enabled} onClick={()=>onChange(latest.current.map(b=>b.id===block.id?{...b,enabled:!b.enabled}:b))}/>
           <IconButton icon="trash" danger label={'Baustein '+(index+1)+' entfernen'} disabled={busy} onClick={()=>{onChange(latest.current.filter(b=>b.id!==block.id));setMessage('Baustein entfernt. Die Änderung wird erst mit der Seite gespeichert.');}}/>
         </div>
-        <details open><summary className="block-editor-summary" aria-label="Baustein bearbeiten" title="Bearbeitung auf- oder zuklappen"><CmsIcon name="edit"/><span className="sr-only">Baustein bearbeiten</span></summary>
-          {block.type==='legacy'?<div className="block-editor-fields"><p className="block-editor-hint">Die bisherigen Texte, Bilder und Akkordeons bleiben erhalten. Wird dieser Baustein entfernt, kann er über „Bestehender Seiteninhalt“ wieder hinzugefügt werden.</p>{legacyEditor}</div>:
+        <div id={'block-fields-'+block.id} hidden={!isLegacy&&!open}>
+          {isLegacy?<div className="legacy-editor-panels">{legacyPanels.map(panel=>{const key=block.id+'--'+panel.id;const expanded=openIds.has(key);return <section key={panel.id} className="legacy-editor-panel" data-disclosure-key={key}>
+<div className="legacy-panel-heading"><button type="button" className="legacy-panel-toggle" aria-expanded={expanded} aria-controls={'legacy-fields-'+key} disabled={busy} onClick={()=>toggle(key)}><span aria-hidden="true">{expanded?'▾':'▸'}</span><span><strong>{panel.title}</strong><small>{panel.detail}</small></span></button>
+{panel.onRemove&&<IconButton icon="trash" danger label={panel.title+' entfernen'} disabled={busy||!panel.canRemove} onClick={()=>setPendingPanel(key)}/>}</div>
+{pendingPanel===key&&<div className="legacy-panel-removal" role="group" aria-label={panel.title+' entfernen bestätigen'}>
+<p><strong>{panel.title} entfernen?</strong> Andere Inhaltsbereiche und hochgeladene Dateien bleiben erhalten. Wirksam erst mit „Speichern“.</p>
+<button type="button" disabled={busy} onClick={()=>{panel.onRemove();setPendingPanel(null);setOpenIds(prev=>{const next=new Set(prev);next.delete(key);return next;});setMessage(panel.title+' entfernt. Erst mit Speichern wird die Änderung übernommen.');focusPanel(key);}}>Entfernen</button>
+<button type="button" disabled={busy} onClick={()=>{setPendingPanel(null);focusPanel(key);}}>Abbrechen</button>
+</div>}
+<div id={'legacy-fields-'+key} className="legacy-panel-fields" hidden={!expanded}>{panel.content}</div></section>;})}</div>:block.type==='legacy'?<div className="block-editor-fields"><p className="block-editor-hint">Die bisherigen Texte, Bilder und Akkordeons bleiben erhalten. Wird dieser Baustein entfernt, kann er über „Bestehender Seiteninhalt“ wieder hinzugefügt werden.</p>{legacyEditor}</div>:
             <BlockFields block={block} onChange={data=>update(block.id,data)} csrfToken={csrfToken} onBusyChange={onBusyChange} busy={busy}/>}
-        </details>
-      </li>)}
+        </div>
+      </li>;})}
     </ol>
     <div className="block-editor-add"><label>Bausteintyp<select aria-label="Bausteintyp" value={type} onChange={e=>setType(e.target.value)} disabled={busy}>{blockTypes.map(([value,label])=><option key={value} value={value} disabled={value==='legacy'&&blocks.some(b=>b.type==='legacy')}>{label}</option>)}</select></label><button type="button" disabled={busy||blocks.length>=50||(type==='legacy'&&blocks.some(b=>b.type==='legacy'))} onClick={add}>Inhaltsbaustein hinzufügen</button></div>
   </section>;

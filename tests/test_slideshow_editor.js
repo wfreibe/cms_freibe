@@ -47,6 +47,17 @@ const {fs,path,crypto,root,baseEnv,run,php,temp,server,stop,snapshot}=require('.
   const save=await request('/api/sections/gallery-test',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({lang:'de',title:'Test',nav_label:'Test',content:html,image_url:urls[2],bg_image_url:urls[0],is_published:1,show_in_navigation:1})});assert.equal(save.status,200,await save.text());
   const loaded=await (await request('/api/sections/gallery-test?lang=de')).json();
   assert.equal(loaded.image_url,urls[2],'Section image URL was not persisted');assert.equal(loaded.bg_image_url,urls[0],'Background image URL was not persisted');
+
+  const {clearLegacyPart}=await import('../frontend/src/utils/legacyParts.js');
+  for(const part of ['slideshow','text']){
+   const patch=clearLegacyPart(loaded,part);
+   const removal=await request('/api/sections/gallery-test',{method:'PATCH',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({lang:'de',...patch})});assert.equal(removal.status,200);
+   const result=await(await request('/api/sections/gallery-test?lang=de')).json();
+   assert.equal(readGalleries(result.content,'gallery-test').length,part==='slideshow'?0:1);
+   assert.equal(new DOMParser().parseFromString(result.content,'text/html').querySelector('p')?.textContent||'',part==='slideshow'?'Text bleibt erhalten.':'');
+   assert.equal(result.image_url,urls[2]);assert.equal(result.bg_image_url,urls[0]);
+   for(const url of urls)assert.equal((await request(url)).status,200,'Removing an area deleted uploaded media');
+  }
   const clearImage=await request('/api/sections/gallery-test',{method:'PUT',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({lang:'de',image_url:null,bg_image_url:null})});assert.equal(clearImage.status,200);
   const cleared=await (await request('/api/sections/gallery-test?lang=de')).json();assert.equal(cleared.image_url,null);assert.equal(cleared.bg_image_url,null);assert.equal((await request(urls[0])).status,200,'Clearing background must not delete the image');assert.equal((await request(urls[2])).status,200,'Removing a section image must not delete its file');
   for(const layout of ['original','wide','left','right']){

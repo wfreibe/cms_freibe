@@ -15,6 +15,10 @@ const page={
  accordions:[{id:'acc-background-demo',title:'Aufklappbarer Beispieltext',content:'<p>Auch dieser Text muss lesbar bleiben.</p>'}],
  content_blocks:[{id:'legacy',type:'legacy',enabled:true,data:{}}]
 };
+if(params.get('media')==='1'){
+ page.image_url='/tests/block-landscape.png';
+ page.content+='<div class="local-slideshow cms-gallery"><img src="/tests/block-landscape.png" alt="Breites Testbild"><img src="/tests/block-portrait.png" alt="Hohes Testbild"></div>';
+}
 function Demo(){
  const {setActiveEditSection}=useI18n();
  return <><main className="public-site" style={{maxWidth:1000,margin:'24px auto',padding:24,color:'#edf0f2'}}>

@@ -148,3 +148,23 @@ Die Zuordnung gilt gemeinsam für alle Sprachen. Sichtbarkeit, Veröffentlichung
 Es gibt eine Untermenüebene. Die Startseite bleibt im Hauptmenü. Seiten mit Unterseiten können erst verschoben werden, nachdem ihre Unterseiten neu zugeordnet wurden. Eigene Zuordnung, Kreise, unbekannte Ziele und tiefere Verschachtelungen werden auch im Backend abgewiesen. Beim Löschen eines übergeordneten Punktes bleiben seine Unterseiten erhalten und werden ins Hauptmenü verschoben.
 
 Migration 013 legt die getrennte Tabelle page_navigation an und übernimmt die bisherige Projektgruppierung, ohne die gespeicherten Seiteninhalte zu ändern. Der Deployment-Workflow führt sie nach automatischer Sicherung auf dem Zielsystem aus.
+
+## Aufklappbare und einzeln entfernbare Inhaltsbereiche
+
+Beim Öffnen des Editors sind vorhandene Bausteine geschlossen. Jede Zeile zeigt Typ, Titel und eine kurze Zusammenfassung, beispielsweise Bildanzahl, Themenzahl oder einen Textauszug. Ein Klick auf die Zeile öffnet die Einstellungen. Mehrere Bausteine können unabhängig geöffnet bleiben; Alle aufklappen und Alle zuklappen steuern die gesamte Liste. Neu hinzugefügte Bausteine öffnen sich automatisch.
+
+Die Eingabefelder bleiben beim Zuklappen im DOM, sodass Eingaben und Uploadzustand erhalten bleiben. Reihenfolge, Sichtbarkeit und Entfernen sind immer über die Symbolaktionen erreichbar. Offene Zustände hängen an der Baustein-ID und bleiben beim Sortieren erhalten; sie werden weder als Seiteninhalt noch im Browser dauerhaft gespeichert.
+
+Native Eingabefehler öffnen den betroffenen Baustein und führen den Fokus zum ungültigen Feld. Neue Inline-Fehlermeldungen, etwa zu Video-Adressen oder Uploads, öffnen ihren Baustein ebenfalls. Die öffentliche Darstellung und die gespeicherten Inhaltsdaten werden dadurch nicht verändert. Die Veröffentlichung erfolgt über den regulären GitHub-Deployment-Workflow.
+
+### Einzelbereiche bestehender Seiten
+
+Bestehende Seiten zeigen die Bereiche Seitenbild, Hintergrund, Slideshow, Text und Akkordeons direkt als einzeln minimierte Zeilen. Der gemeinsame Bestandsinhalt muss nicht zuerst aufgeklappt werden. Kontaktdaten erscheinen bei den dafür vorgesehenen Seiten als eigener Bereich. Jeder Bereich öffnet unabhängig; Alle aufklappen und Alle zuklappen schließen diese Bereiche mit ein. Eingabefehler öffnen den konkreten Bereich, beispielsweise Akkordeons.
+
+Die Symbolaktionen im Kopf des Bestandsinhalts gelten weiterhin für diesen gesamten Inhaltsbaustein. Die Einzelbereiche verändern nur die Bearbeitungsoberfläche; HTML, Bildpfade, Galerie und Akkordeons werden unverändert in den bisherigen Feldern gespeichert. Es erfolgt keine automatische Inhaltsaufteilung oder Datenmigration.
+
+### Einzelne Bereiche entfernen
+
+Jeder befüllte Bestandsbereich hat eine eigene Papierkorb-Aktion mit Bestätigung. Seitenbild leert nur image_url; Hintergrund leert Farbe und Hintergrundbild; Akkordeons leeren nur ihre Liste; Kontaktdaten leeren nur die Kontaktfelder. Slideshow entfernt ausschließlich die Galerie-Container aus dem HTML. Text entfernt den übrigen HTML-Inhalt und erhält vorhandene Galerie-Container. Andere Bausteine bleiben unverändert.
+
+Die Änderung bleibt ein Entwurf bis Speichern. Abbrechen im Editor verwirft sie. Geleerte Bereiche bleiben als minimierte Zeilen verfügbar und können neu befüllt werden. Bild- und Audiodateien werden durch diese Aktionen nicht gelöscht. Nach Entfernen oder Abbrechen einer Bestätigung kehrt der Tastaturfokus zur betreffenden Zeile zurück. Prüfungen verwenden synthetische Browserdaten und isolierte API-Datenbanken; bestehende Inhalte werden nicht für Tests gelöscht.
