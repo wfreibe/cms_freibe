@@ -26,10 +26,10 @@ Die Anwendung verbindet eine öffentliche Portfolio-Webseite mit einem eigenen C
 | Bilder | PHP GD zur Prüfung und Neukodierung hochgeladener Bilder |
 | Hosting | DomainFactory; statische Dateien und PHP-API |
 | Automatisierung | GitHub Actions, SSH, SCP und rsync |
-| CI-Laufzeit | Ubuntu 24.04, Node.js 22 und PHP 8.3 |
-| Server-CLI | Explizit `/usr/bin/php83`; zuletzt als PHP 8.3.36 geprüft |
+| CI-Laufzeit | Ubuntu 24.04, Node.js 22 und PHP 8.4 |
+| Server-CLI | Explizit `/usr/bin/php84`; zuletzt als PHP 8.4.27 geprüft |
 
-Der generische Serverbefehl `php` zeigte bei der Einrichtung PHP 7.4.33. Deshalb verwendet das Deployment ausdrücklich `/usr/bin/php83`. Die PHP-Version für HTTP-Aufrufe wird separat im Hosting konfiguriert.
+Der generische Serverbefehl `php` zeigte bei der Einrichtung PHP 7.4.33. Deshalb verwendet das Deployment ausdrücklich `/usr/bin/php84`. Die PHP-Version für HTTP-Aufrufe wird separat im Hosting konfiguriert.
 
 Node.js wird zum Entwickeln, Testen und Bauen benötigt. Die produktive Webseite benötigt keinen laufenden Node- oder Vite-Prozess.
 
@@ -220,7 +220,7 @@ flowchart TD
 
 ### Phase A: Prüfen und Bauen auf GitHub
 
-Der Job `verify` läuft auf Ubuntu 24.04 mit Node.js 22 und PHP 8.3.
+Der Job `verify` läuft auf Ubuntu 24.04 mit Node.js 22 und PHP 8.4.
 
 1. Repository auschecken.
 2. Abhängigkeiten aus den Lockdateien installieren:
@@ -249,7 +249,7 @@ Er verwendet die GitHub-Umgebung `production`. Diese ist auf den Branch master b
 | Variable `DEPLOY_HOST` | `freiberger-net.de` |
 | Variable `DEPLOY_USER` | SSH-Konto für das Deployment |
 | Variable `DEPLOY_PATH` | Vollständiges Basisverzeichnis der Anwendung |
-| Variable `DEPLOY_PHP` | `/usr/bin/php83` |
+| Variable `DEPLOY_PHP` | `/usr/bin/php84` |
 
 Der öffentliche Deployment-Schlüssel ist im SSH-Konto auf dem Server hinterlegt. Der private Schlüssel wird nur im temporären GitHub-Runner verwendet.
 
@@ -300,7 +300,7 @@ Es wird kein `--delete` verwendet. Zusätzliche oder ältere Dateien bleiben bes
 
 ### Phase E: Migrationen und Erfolgskontrolle
 
-Nach dem Kopieren werden mit `/usr/bin/php83` die ausstehenden Schema-Migrationen ausgeführt. Es erfolgen kein Seed-Import und keine Administrator-Provisionierung.
+Nach dem Kopieren werden mit `/usr/bin/php84` die ausstehenden Schema-Migrationen ausgeführt. Es erfolgen kein Seed-Import und keine Administrator-Provisionierung.
 
 Danach folgen:
 
