@@ -17,7 +17,7 @@ const page={
 };
 function Demo(){
  const {setActiveEditSection}=useI18n();
- return <><main className="public-site" style={{maxWidth:1000,margin:'24px auto',padding:24,color:'#edf0f2'}}> 
+ return <><main className="public-site" style={{maxWidth:1000,margin:'24px auto',padding:24,color:'#edf0f2'}}>
  <h1 style={{color:'inherit'}}>Lokaler Hintergrund-Test</h1><p style={{color:'inherit'}}>Synthetische Daten, keine Speicherung in der Inhaltsdatenbank.</p>
  <button type="button" onClick={()=>setActiveEditSection(JSON.parse(JSON.stringify(page)))}>Test-Editor öffnen</button>
  <div style={{marginTop:24}}><ContentBlocks page={page}/></div></main><AdminModal/></>;
