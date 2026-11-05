@@ -79,7 +79,7 @@ if (!$libDir) {
     }
 }
 
-if ($method === 'GET' && $apiPath === '/ready') {
+if ($method === 'GET' && $apiPath === '/ready' && !(isset($_GET['__cms_page']) && !preg_match('~^/api(?:/|$)~', parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/'))) {
     $status = 503;
     if ($libDir && is_file($libDir . '/Readiness.php')) {
         require_once $libDir . '/Readiness.php';
@@ -153,6 +153,10 @@ if (in_array($method, ['POST', 'PUT', 'PATCH'], true)) {
             echo json_encode(['error' => 'Ungültiges JSON-Format.']);
             exit;
         }
+        // Associative decoding maps both {} and [] to an empty PHP array.
+        // Keep the required JSON-list shape explicit for the block collection.
+        $shape = json_decode($rawInput);
+        if (is_object($shape) && property_exists($shape, 'content_blocks') && !is_array($shape->content_blocks)) cmsSendJsonError(400, 'Inhaltsbausteine müssen eine Liste sein.');
         $body = is_array($decoded) ? $decoded : [];
     }
 }
@@ -181,6 +185,16 @@ function formatSectionWithAccordions(array $section, PDO $db, string $lang, bool
     }
     unset($acc);
     $section['accordions'] = $accordions;
+    $section['content_blocks'] = ContentBlocks::response($section['content_blocks'] ?? null, $includeInactive);
+    if (!$includeInactive && !array_filter($section['content_blocks'], static fn($b) => $b['type'] === 'legacy')) {
+        // Preserve original fields in storage and authenticated editing, but do not
+        // disclose an excluded legacy block through backwards-compatible API fields.
+        $section['content'] = '';
+        $section['accordions'] = [];
+        $section['image_url'] = null;
+        $section['bg_image_url'] = null;
+        $section['contact_info'] = null;
+    }
 
     if (!empty($section['contact_info'])) {
         $decoded = json_decode($section['contact_info'], true);
@@ -199,11 +213,35 @@ function formatSectionWithAccordions(array $section, PDO $db, string $lang, bool
     $section['is_active'] = $isPublished; // Retain alias for backwards compatibility
     $section['sort_order'] = (int)($section['sort_order'] ?? 1);
 
-    return $section;
+    return array_merge($section, PageUrls::fields($db, $secId), ['menu_parent'=>MenuHierarchy::parent($db,$secId)]);
 }
 
 try {
     $db = Database::getConnection();
+    // Apache forwards document requests here so aliases receive a real HTTP 301.
+    $documentPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+    if (isset($_GET['__cms_page']) && in_array($method, ['GET','HEAD'], true) && !preg_match('~^/api(?:/|$)~', $documentPath)) {
+        $isCmsDocument = rtrim($documentPath, '/') === '/cms' || preg_match('~^/cms/preview/[a-zA-Z0-9_-]+$~D', $documentPath);
+        $resolved = $isCmsDocument ? null : PageUrls::resolve($db, $documentPath);
+        if ($resolved && $resolved['redirect']) {
+            $query = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY);
+            header('Location: '.$resolved['url_path'].($query ? '?'.$query : ''), true, 301); exit;
+        }
+        http_response_code($isCmsDocument || $resolved ? 200 : 404);
+        header('Content-Type: text/html; charset=utf-8');
+        $index = dirname(__DIR__).'/index.html';
+        if (!is_file($index)) $index = dirname(__DIR__, 2).'/index.html';
+        if ($method !== 'HEAD') readfile($index);
+        exit;
+    }
+    // Public path resolution also covers hidden-in-navigation pages and old URLs.
+    if ($method === 'GET' && $apiPath === '/page-route') {
+        if (!is_string($_GET['path'] ?? null)) cmsSendJsonError(400, 'Eine Seitenadresse ist erforderlich.');
+        $resolved = PageUrls::resolve($db, $_GET['path'], Validator::validateLanguage($_GET['lang'] ?? 'de'));
+        if (!$resolved) cmsSendJsonError(404, 'Diese Seite wurde nicht gefunden.');
+        echo json_encode($resolved); exit;
+    }
+
 
     // ==========================================
     // 1. Authentication Endpoints
@@ -280,7 +318,7 @@ try {
         $lang = Validator::validateLanguage($_GET['lang'] ?? 'de');
 
         $stmt = $db->prepare("
-            SELECT id, lang, sort_order, nav_label, title, subtitle, content, image_url, image_layout, bg_color, bg_image_url, contact_info, is_published, show_in_navigation, is_active, updated_at
+            SELECT id, lang, sort_order, nav_label, title, subtitle, content, content_blocks, image_url, image_layout, bg_color, bg_image_url, contact_info, is_published, show_in_navigation, is_active, updated_at
             FROM sections
             WHERE id = ? AND lang = ?
         ");
@@ -320,7 +358,7 @@ try {
             Auth::requireAdmin();
 
             $stmt = $db->prepare("
-                SELECT id, lang, sort_order, nav_label, title, subtitle, content, image_url, image_layout, bg_color, bg_image_url, contact_info, is_published, show_in_navigation, is_active, updated_at
+                SELECT id, lang, sort_order, nav_label, title, subtitle, content, content_blocks, image_url, image_layout, bg_color, bg_image_url, contact_info, is_published, show_in_navigation, is_active, updated_at
                 FROM sections
                 WHERE lang = ?
                 ORDER BY sort_order ASC
@@ -338,7 +376,7 @@ try {
 
         // Public list: only published sections with show_in_navigation=1, excluding standalone legal sections
         $stmt = $db->prepare("
-            SELECT id, lang, sort_order, nav_label, title, subtitle, content, image_url, image_layout, bg_color, bg_image_url, contact_info, is_published, show_in_navigation, is_active, updated_at
+            SELECT id, lang, sort_order, nav_label, title, subtitle, content, content_blocks, image_url, image_layout, bg_color, bg_image_url, contact_info, is_published, show_in_navigation, is_active, updated_at
             FROM sections
             WHERE lang = ?
               AND (is_published = 1 OR (is_published IS NULL AND is_active = 1))
@@ -365,7 +403,7 @@ try {
         if (($_GET['preview'] ?? '') === '1') { Auth::requireAdmin(); $isAdmin = true; }
 
         $stmt = $db->prepare("
-            SELECT id, lang, sort_order, nav_label, title, subtitle, content, image_url, image_layout, bg_color, bg_image_url, contact_info, is_published, show_in_navigation, is_active, updated_at
+            SELECT id, lang, sort_order, nav_label, title, subtitle, content, content_blocks, image_url, image_layout, bg_color, bg_image_url, contact_info, is_published, show_in_navigation, is_active, updated_at
             FROM sections
             WHERE id = ? AND lang = ?
         ");
@@ -409,6 +447,7 @@ try {
         $title = trim((string)($body['title'] ?? ''));
         $subtitle = trim((string)($body['subtitle'] ?? ''));
         $content = (string)($body['content'] ?? '<p>Neuer Inhalt...</p>');
+        $content_blocks = array_key_exists('content_blocks', $body) ? json_encode(ContentBlocks::normalize($body['content_blocks']), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) : null;
         $image_url = !empty($body['image_url']) ? trim((string)$body['image_url']) : null;
         $image_layout = (string)($body['image_layout'] ?? 'original');
         $bg_color = !empty($body['bg_color']) ? trim((string)$body['bg_color']) : null;
@@ -433,15 +472,17 @@ try {
             $nextSort = (int)$sortStmt->fetchColumn() + 1;
 
             $ins = $db->prepare("
-                INSERT INTO sections (id, lang, sort_order, nav_label, title, subtitle, content, image_url, image_layout, bg_color, bg_image_url, is_published, show_in_navigation, is_active, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                INSERT INTO sections (id, lang, sort_order, nav_label, title, subtitle, content, content_blocks, image_url, image_layout, bg_color, bg_image_url, is_published, show_in_navigation, is_active, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
             ");
 
             foreach (Validator::ALLOWED_LANGUAGES as $targetLang) {
                 $published = $createdLang === $targetLang ? $is_published : 0;
-                $ins->execute([$cleanId, $targetLang, $nextSort, $nav_label, $title, $subtitle, $cleanContent, $image_url, $image_layout, $bg_color, $bg_image_url, $published, $show_in_navigation, $published]);
+                $ins->execute([$cleanId, $targetLang, $nextSort, $nav_label, $title, $subtitle, $cleanContent, $content_blocks, $image_url, $image_layout, $bg_color, $bg_image_url, $published, $show_in_navigation, $published]);
             }
 
+            PageUrls::claim($db, $cleanId, $body['url_slug'] ?? '', $nav_label, true);
+            MenuHierarchy::save($db,$cleanId,$body['menu_parent'] ?? MenuHierarchy::parent($db,$cleanId));
             $db->commit();
 
             $sel = $db->prepare("SELECT * FROM sections WHERE id = ? AND lang = ?");
@@ -456,6 +497,8 @@ try {
             if ($db->inTransaction()) {
                 $db->rollBack();
             }
+            if ($e instanceof PageUrlConflict) cmsSendJsonError(409, $e->getMessage());
+            if ($e instanceof InvalidArgumentException) cmsSendJsonError(400, $e->getMessage());
             error_log('[CMS Error] Failed to create section: ' . $e->getMessage());
             cmsSendJsonError(500, 'Internal server error.', $e);
         }
@@ -487,6 +530,7 @@ try {
         $existingStmt->execute([$id, $lang]);
         $existing = $existingStmt->fetch();
         if (!$existing) cmsSendJsonError(404, 'Sektion nicht gefunden.');
+        $content_blocks = array_key_exists('content_blocks', $body) ? json_encode(ContentBlocks::normalize($body['content_blocks']), JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) : $existing['content_blocks'];
         $body = array_replace($existing, $body);
         $title = trim((string)($body['title'] ?? ''));
         $content = (string)($body['content'] ?? '');
@@ -518,6 +562,7 @@ try {
                     title = ?,
                     subtitle = ?,
                     content = ?,
+                    content_blocks = ?,
                     image_url = ?,
                     image_layout = ?,
                     bg_color = ?,
@@ -530,7 +575,9 @@ try {
                     updated_at = CURRENT_TIMESTAMP
                 WHERE id = ? AND lang = ?
             ");
-            $update->execute([$nav_label, $title, $subtitle, $cleanContent, $image_url, $image_layout, $bg_color, $bg_image_url, $contact_info, $is_published, $show_in_navigation, $is_active, $sort_order, $id, $lang]);
+            $update->execute([$nav_label, $title, $subtitle, $cleanContent, $content_blocks, $image_url, $image_layout, $bg_color, $bg_image_url, $contact_info, $is_published, $show_in_navigation, $is_active, $sort_order, $id, $lang]);
+            PageUrls::claim($db, $id, $body['url_slug'] ?? '', $nav_label ?? '', false);
+            if (array_key_exists('menu_parent',$body)) MenuHierarchy::save($db,$id,$body['menu_parent']);
 
             if (array_key_exists('bg_color', $body) || array_key_exists('bg_image_url', $body)) {
                 $syncStmt = $db->prepare("UPDATE sections SET bg_color = ?, bg_image_url = ? WHERE id = ?");
@@ -586,6 +633,8 @@ try {
             if ($db->inTransaction()) {
                 $db->rollBack();
             }
+            if ($e instanceof PageUrlConflict) cmsSendJsonError(409, $e->getMessage());
+            if ($e instanceof InvalidArgumentException) cmsSendJsonError(400, $e->getMessage());
             error_log('[CMS Error] Failed to update section: ' . $e->getMessage());
             cmsSendJsonError(500, 'Internal server error.', $e);
         }
@@ -660,6 +709,9 @@ try {
 
         $db->beginTransaction();
         try {
+            MenuHierarchy::remove($db,$id);
+            $deleteUrls = $db->prepare('DELETE FROM page_urls WHERE section_id=?');
+            $deleteUrls->execute([$id]);
             // Delete accordions and section (cascade will also handle it)
             $delAcc = $db->prepare("DELETE FROM section_accordions WHERE section_id = ?");
             $delAcc->execute([$id]);

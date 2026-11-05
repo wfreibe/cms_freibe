@@ -1,6 +1,8 @@
+import {IconButton} from './CmsActions';
 import {useState,useRef,useEffect} from 'preact/hooks';
+import {localImage} from '../utils/contentBlocks';
 
-export function SectionImageUpload({value,onChange,csrfToken,onBusyChange,disabled=false,kind='section',layout='original',onLayoutChange}){
+export function SectionImageUpload({value,onChange,csrfToken,onBusyChange,disabled=false,kind='section',layout='original',onLayoutChange,localOnly=false,fieldLabel='Seitenbild'}){
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[message,setMessage]=useState(''),[broken,setBroken]=useState(false);
  const background=kind==='background';
  const name=background?'Hintergrundbild':'Bild';
@@ -20,12 +22,13 @@ export function SectionImageUpload({value,onChange,csrfToken,onBusyChange,disabl
   finally{onBusyChange(false);if(alive.current)setBusy(false);controller.current=null;}
  }
  return <div className="section-image-upload">
-  <label><strong>{background?'Hintergrundbild (optional)':'Seitenbild'}</strong><input type="text" aria-label={background?'Bild-URL des Hintergrundbildes':'Bild-URL des Seitenbildes'} value={value} disabled={busy||disabled} onInput={e=>onChange(e.target.value)} placeholder="Bild hochladen oder Bild-URL eingeben"/></label>
+  <label><strong>{background?'Hintergrundbild (optional)':fieldLabel}</strong><input type="text" aria-label={background?'Bild-URL des Hintergrundbildes':fieldLabel==='Seitenbild'?'Bild-URL des Seitenbildes':'Bild-URL: '+fieldLabel} value={value} disabled={busy||disabled} onInput={e=>onChange(e.target.value)} placeholder="Bild hochladen oder Bild-URL eingeben"/></label>
   {!background&&onLayoutChange&&<div className="section-image-layout-settings"><label>Darstellung<select aria-label="Darstellung des Seitenbildes" value={layout==='left'||layout==='right'?'beside':layout} onChange={e=>onLayoutChange(e.target.value==='beside'?'left':e.target.value)}><option value="original">Originalformat (ohne Beschnitt)</option><option value="wide">16:9 (zugeschnitten)</option><option value="beside">Bild neben Text</option></select></label>{(layout==='left'||layout==='right')&&<label>Bildposition<select aria-label="Bildposition" value={layout} onChange={e=>onLayoutChange(e.target.value)}><option value="left">Links vom Text</option><option value="right">Rechts vom Text</option></select></label>}</div>}
-  <div className="section-image-actions"><button type="button" className="cms-workspace-button cms-workspace-button-primary" disabled={busy||disabled} onClick={()=>input.current.click()}>{busy?'Wird hochgeladen …':value?name+' austauschen':name+' hochladen'}</button>{value&&<button type="button" className="cms-workspace-button" disabled={busy||disabled} onClick={()=>{onChange('');setError('');setMessage('Bild entfernt. Zum Übernehmen die Seite speichern.');}}>{name} entfernen</button>}</div>
+  <div className="section-image-actions"><IconButton icon={value?'replace':'imageAdd'} label={busy?'Wird hochgeladen …':value?name+' austauschen':name+' hochladen'} aria-busy={busy} disabled={busy||disabled} onClick={()=>input.current.click()}/>{value&&<IconButton icon="trash" danger label={name+' entfernen'} disabled={busy||disabled} onClick={()=>{onChange('');setError('');setMessage('Bild entfernt. Zum Übernehmen die Seite speichern.');}}/>}</div>
   <input ref={input} type="file" className="section-image-file" aria-label={background?'Datei für Hintergrundbild auswählen':'Datei für Seitenbild auswählen'} accept="image/jpeg,image/png,image/webp" disabled={busy||disabled} onChange={e=>{upload(e.target.files?.[0]);e.target.value='';}}/>
-  <p className="section-image-help">JPEG, PNG oder WebP · maximal 8 MB und 12 Megapixel. {background?'Das Bild erscheint hinter dem Seiteninhalt mit einem dunklen Filter für die Lesbarkeit.':'Die gewählte Darstellung wird mit der Seite gespeichert. Auf schmalen Bildschirmen stehen Bild und Text untereinander.'}</p>
+  <p className="section-image-help">JPEG, PNG oder WebP · maximal 8 MB und 12 Megapixel. {localOnly?'Das Bild wird mit diesem Baustein gespeichert.':background?'Das Bild erscheint hinter dem Seiteninhalt mit einem dunklen Filter für die Lesbarkeit.':'Die gewählte Darstellung wird mit der Seite gespeichert. Auf schmalen Bildschirmen stehen Bild und Text untereinander.'}</p>
+  {value&&localOnly&&!localImage(value)&&<p role="alert">Bitte ein Bild hochladen oder einen lokalen Bildpfad verwenden.</p>}
   {error&&<p role="alert" className="slideshow-error">{error}</p>}{message&&<p role="status" className="section-image-help">{message}</p>}
-  {value&&<div className={'section-image-preview'+(background?' background-image-preview':layout==='wide'?' section-image-wide':' section-image-original')}>{broken?<p>Das Bild konnte nicht geladen werden. Bitte die Adresse prüfen oder ein neues Bild hochladen.</p>:<img key={value} src={value} alt={background?'Vorschau des Hintergrundbildes':'Vorschau des Seitenbildes'} onError={()=>setBroken(true)}/>}</div>}
+  {value&&(!localOnly||localImage(value))&&<div className={'section-image-preview'+(background?' background-image-preview':layout==='wide'?' section-image-wide':' section-image-original')}>{broken?<p>Das Bild konnte nicht geladen werden. Bitte die Adresse prüfen oder ein neues Bild hochladen.</p>:<img key={value} src={value} alt={background?'Vorschau des Hintergrundbildes':'Vorschau des Seitenbildes'} onError={()=>setBroken(true)}/>}</div>}
  </div>;
 }

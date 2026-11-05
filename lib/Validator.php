@@ -12,6 +12,9 @@
  */
 
 declare(strict_types=1);
+require_once __DIR__ . '/ContentBlocks.php';
+require_once __DIR__ . '/MenuHierarchy.php';
+require_once __DIR__ . '/PageUrls.php';
 
 class Validator
 {
@@ -100,6 +103,14 @@ class Validator
     public static function validateSectionPayload(array $data, bool $isNew = false): array
     {
         $errors = [];
+        if (array_key_exists('url_slug', $data)) {
+            try { PageUrls::input($data['url_slug']); }
+            catch (InvalidArgumentException $e) { $errors[] = $e->getMessage(); }
+        }
+        if (array_key_exists('content_blocks', $data)) {
+            try { ContentBlocks::normalize($data['content_blocks']); }
+            catch (InvalidArgumentException $e) { $errors[] = $e->getMessage(); }
+        }
         foreach (['is_published', 'is_active', 'show_in_navigation'] as $field) {
             if (array_key_exists($field, $data) && !in_array($data[$field], [0, 1, false, true], true)) $errors[] = 'Ungültiger Statuswert.';
         }
@@ -189,6 +200,10 @@ class Validator
                     $errors[] = 'Inhalt überschreitet die maximale Größe von ' . self::MAX_CONTENT_LENGTH . ' Bytes.';
                 }
             }
+        }
+
+        if (array_key_exists('menu_parent', $data)) {
+            try { MenuHierarchy::input($data['menu_parent']); } catch (InvalidArgumentException $e) { $errors[] = $e->getMessage(); }
         }
 
         // Sort order

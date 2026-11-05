@@ -379,3 +379,7 @@ Weiterführende Projektdateien:
 - `.github/workflows/deploy.yml`: tatsächliche Workflow-Definition;
 - `scripts/deploy.sh`: Verbindung und öffentliche Prüfung;
 - `scripts/deploy_remote.sh`: Sicherung, Übertragung und Migration auf dem Server.
+
+## Weiterentwicklung vom 5. November 2026
+
+Der modulare Baustein-Editor, eigene URL-Namen, Menüzuordnung, Symbolaktionen und Hintergrundkontraste ergänzen die bisherige CMS-Architektur. Typen, Bedienung, Erhalt der Bestandsinhalte und Migrationen 011–013 sind in [INHALTSBAUSTEINE.md](INHALTSBAUSTEINE.md) dokumentiert. Die oben beschriebenen Produktionsprüfungen vom 2. November beziehen sich auf den damaligen Stand.

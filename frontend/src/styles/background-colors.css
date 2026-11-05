@@ -1,0 +1,17 @@
+.cms-background-colors{min-width:0;border:0;padding:0;margin:0 0 18px;color:#111316}
+.cms-background-colors legend{font-size:13px;font-weight:700;padding:0}
+.cms-background-colors>p{font-size:12px;line-height:1.6;color:#526875;margin:8px 0 12px}
+.cms-background-presets{display:flex;flex-wrap:wrap;gap:8px}
+.cms-background-presets button{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:8px 10px;border:1px solid #a5bac4;border-radius:5px;background:#fff;color:#111316;font:12px/1.4 Arial,sans-serif;cursor:pointer}
+.cms-background-presets button[aria-pressed=true]{border-color:#c7254e;box-shadow:0 0 0 1px #c7254e;background:#f2f4f5;font-weight:700}
+.cms-background-presets button:hover{border-color:#111316}
+.cms-background-presets button:focus-visible{outline:3px solid #117f86;outline-offset:3px}
+.cms-background-swatch{display:block;width:18px;height:18px;flex:none;border:1px solid #879098;border-radius:3px}
+.cms-background-custom{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-top:14px}
+.cms-background-custom label{display:flex!important;flex-direction:column;gap:6px;margin:0!important;font-size:12px!important}
+.cms-background-custom input[type=color]{width:44px!important;height:42px;min-height:42px;padding:3px;border:1px solid #a5bac4;border-radius:4px;background:#fff;cursor:pointer}
+.cms-background-custom input[type=text]{width:155px!important;max-width:100%;margin:0!important;font-family:monospace}
+.cms-editor-dialog .admin-bg-settings-card{border:1px solid #dce5e9;border-radius:6px;padding:16px 18px;margin:20px 0;background:#f7f9fa!important}
+.cms-background-heading{font-size:14px;color:#111316;display:block;margin-bottom:5px}
+.cms-background-description{font-size:12px;line-height:1.6;color:#526875;margin:0 0 18px}
+@media(max-width:650px){.cms-background-presets button{min-height:44px}.cms-editor-dialog .admin-bg-settings-card{padding:14px}}

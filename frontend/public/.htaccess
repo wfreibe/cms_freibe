@@ -7,4 +7,4 @@ RewriteRule ^api/(.*)$ api/api.php?__cms_route=$1 [QSA,L]
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
-RewriteRule ^ index.html [L]
+RewriteRule ^ api/api.php?__cms_page=1 [QSA,L]

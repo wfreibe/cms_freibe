@@ -54,4 +54,8 @@ Für Seitenbilder ist Originalformat ohne Beschnitt der Standard. Im CMS stehen 
 
 ## Deployment vorbereiten
 
-Siehe [DomainFactory-Anleitung](docs/DEPLOYMENT.md). Die Paketierung erstellt geprüfte Archive ohne Konfiguration, Datenbank und Uploads. GitHub-Ziel: https://github.com/wfreibe/cms_freibe. Noch kein automatischer Upload oder produktiver Deploy.
+Siehe [DomainFactory-Anleitung](docs/DEPLOYMENT.md). Die Paketierung erstellt geprüfte Archive ohne Konfiguration, Datenbank und Uploads. GitHub-Ziel: https://github.com/wfreibe/cms_freibe. Der automatische GitHub-Workflow veröffentlicht nach erfolgreichen Prüfungen von master; Details stehen in docs/GITHUB_DEPLOYMENT.md.
+
+## Modulare Inhaltsbausteine (5. November 2026)
+
+Seiten können unter „Inhalt bearbeiten“ aus sortierbaren Bausteinen aufgebaut werden: Text, Bild mit Text und erweiterten Bildoptionen, Slideshow, Akkordeon, YouTube mit Freigabe, Audio vom eigenen Webspace sowie Link/Schaltfläche. Bestehende Seiten bleiben als verschiebbarer und wiederherstellbarer Baustein erhalten. Vorschau und Webseite verwenden dieselbe Darstellung. Hinzu kommen eigene Seitenadressen, wählbare Menüzuordnung und Hintergrundfarben mit Kontrastanpassung. Details zu Bedienung, Datenmodell, Migrationen 011–013 und Tests: [docs/INHALTSBAUSTEINE.md](docs/INHALTSBAUSTEINE.md). Schema-Migrationen erhalten bestehende Inhalte; Laufzeitdaten sind nicht Bestandteil des Deployment-Pakets.

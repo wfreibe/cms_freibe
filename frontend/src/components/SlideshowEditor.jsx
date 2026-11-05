@@ -1,3 +1,4 @@
+import {IconButton,IconUpload} from './CmsActions';
 import metadata from '../slideshows.json';
 import { useMemo,useRef,useState } from 'preact/hooks';
 import {readGalleries,writeGallery} from '../utils/slideshowContent';
@@ -33,16 +34,16 @@ export function SlideshowEditor({html,pageId,csrfToken,onChange,onBusyChange}) {
   {galleries.map((images,g)=><div className="slideshow-gallery" key={g}>
    {galleries.length>1&&<h4>Slideshow {g+1}</h4>}
    <ol className="slideshow-image-list">{images.map((image,i)=><li key={image.src+':'+i} onDragOver={e=>{if(dragging.current?.gallery===g){e.preventDefault();e.dataTransfer.dropEffect='move';}}} onDrop={e=>{e.preventDefault();const source=dragging.current;if(source?.gallery===g)move(g,source.index,i);dragging.current=null;}}>
-    <button type="button" className="slideshow-drag-handle" draggable={!busy} aria-label={'Bild '+(i+1)+' ziehen'} title="Ziehen zum Sortieren" onDragStart={e=>{dragging.current={gallery:g,index:i};e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i));}} onDragEnd={()=>{dragging.current=null;}}>⠿</button>
+    <IconButton icon="drag" className="slideshow-drag-handle" draggable={!busy} label={'Bild '+(i+1)+' ziehen zum Sortieren'} onDragStart={e=>{dragging.current={gallery:g,index:i};e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i));}} onDragEnd={()=>{dragging.current=null;}}/>
     <img src={image.src} alt={image.caption||'Bild '+(i+1)} className="slideshow-thumbnail" />
     <div className="slideshow-image-fields"><label>Bildunterschrift<input value={image.caption} maxLength={500} onInput={e=>edit(g,i,{caption:e.target.value})}/></label><label>Bildtitel<input value={image.title} maxLength={200} onInput={e=>edit(g,i,{title:e.target.value})}/></label>
-     <label className="slideshow-file-label">Bild austauschen<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>{upload([...e.target.files],g,i);e.target.value='';}} /></label>
+     <IconUpload replace label={'Bild '+(i+1)+' austauschen'} accept="image/jpeg,image/png,image/webp" onChange={e=>{upload([...e.target.files],g,i);e.target.value='';}} />
     </div>
-    <div className="slideshow-image-actions"><button type="button" disabled={i===0} aria-label={'Bild '+(i+1)+' nach oben'} onClick={()=>move(g,i,i-1)}>↑</button><button type="button" disabled={i===images.length-1} aria-label={'Bild '+(i+1)+' nach unten'} onClick={()=>move(g,i,i+1)}>↓</button><button type="button" aria-label={'Bild '+(i+1)+' aus Slideshow entfernen'} onClick={()=>update(g,images.filter((_,n)=>n!==i))}>Entfernen</button></div>
+    <div className="slideshow-image-actions"><IconButton icon="up" disabled={i===0} label={'Bild '+(i+1)+' nach oben'} onClick={()=>move(g,i,i-1)}/><IconButton icon="down" disabled={i===images.length-1} label={'Bild '+(i+1)+' nach unten'} onClick={()=>move(g,i,i+1)}/><IconButton icon="trash" danger label={'Bild '+(i+1)+' aus Slideshow entfernen'} onClick={()=>update(g,images.filter((_,n)=>n!==i))}/></div>
    </li>)}</ol>
-   <label className="slideshow-file-label">Bilder hinzufügen<input type="file" multiple accept="image/jpeg,image/png,image/webp" onChange={e=>{upload([...e.target.files],g);e.target.value='';}} /></label>
+   <IconUpload label="Bilder hinzufügen" multiple accept="image/jpeg,image/png,image/webp" onChange={e=>{upload([...e.target.files],g);e.target.value='';}} />
   </div>)}
-  {!galleries.length&&<button type="button" onClick={()=>update(0,[])}>Slideshow anlegen</button>}
+  {!galleries.length&&<IconButton icon="plus" label="Slideshow anlegen" onClick={()=>update(0,[])}/>}
   </fieldset><small>JPEG, PNG oder WebP · maximal 8 MB und 12 Megapixel pro Bild. Entfernen aus der Slideshow löscht die Bilddatei nicht.</small>
  </section>;
 }
