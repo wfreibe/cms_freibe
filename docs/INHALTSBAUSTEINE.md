@@ -168,3 +168,19 @@ Die Symbolaktionen im Kopf des Bestandsinhalts gelten weiterhin für diesen gesa
 Jeder befüllte Bestandsbereich hat eine eigene Papierkorb-Aktion mit Bestätigung. Seitenbild leert nur image_url; Hintergrund leert Farbe und Hintergrundbild; Akkordeons leeren nur ihre Liste; Kontaktdaten leeren nur die Kontaktfelder. Slideshow entfernt ausschließlich die Galerie-Container aus dem HTML. Text entfernt den übrigen HTML-Inhalt und erhält vorhandene Galerie-Container. Andere Bausteine bleiben unverändert.
 
 Die Änderung bleibt ein Entwurf bis Speichern. Abbrechen im Editor verwirft sie. Geleerte Bereiche bleiben als minimierte Zeilen verfügbar und können neu befüllt werden. Bild- und Audiodateien werden durch diese Aktionen nicht gelöscht. Nach Entfernen oder Abbrechen einer Bestätigung kehrt der Tastaturfokus zur betreffenden Zeile zurück. Prüfungen verwenden synthetische Browserdaten und isolierte API-Datenbanken; bestehende Inhalte werden nicht für Tests gelöscht.
+
+## Gemeinsame Elementliste
+
+Im Editor erscheinen ausschließlich vorhandene Inhaltselemente in einer Liste. Der Sammelblock Bisherige Inhalte und unbenutzte Unterbereiche entfallen. Element hinzufügen hängt ein neues Element unten an und öffnet es. Öffnen, Reihenfolge, Sichtbarkeit und Entfernen funktionieren für übernommene und neu angelegte Elemente gleich. Die Seitengestaltung mit Hintergrundfarbe und Hintergrundbild wird separat als Seiteneinstellung geführt.
+
+Beim Öffnen einer älteren Seite werden deren Elemente zunächst nur im Entwurf übernommen. Erst Speichern legt die neue Bausteinliste ab. Die ursprünglichen Inhaltsfelder und Akkordeon-Daten bleiben als Rückfallebene gespeichert und sind ohne sichtbaren Alt-Baustein nicht Teil der öffentlichen Antwort. Vor der Entwicklung wurde eine verifizierte lokale Datenbanksicherung erstellt; es gibt keine automatische Massenänderung oder neue Schema-Migration.
+
+Verschachtelte Layout-Rahmen werden als bereinigte Platzhalterstruktur in den Elementdaten erhalten. Dadurch bleiben beim unveränderten Speichern die vorhandenen Bild-/Textspalten und Slideshow-Optionen erhalten. Beim Umordnen folgen die Elemente der Listenreihenfolge. Entfernte oder ausgeblendete Elemente werden nicht gerendert; leere Rahmen werden ausgelassen. Die Rahmen dürfen keine Skripte oder unbereinigtes HTML enthalten. Bildvorlagen und Layoutdaten durchlaufen die serverseitige HTML-Bereinigung und werden zusätzlich vor der Darstellung bereinigt.
+
+Prüfung: Alle elf Originalseiten werden im DOM vor und nach Übernahme und PHP-Normalisierung verglichen. Texte und vorhandene Bildbeschreibungen bleiben erhalten; ergänzte fehlende Bildattribute entsprechen der regulären HTML-Bereinigung. Zusätzlich werden leere Seiten, wiederholtes Öffnen, Reihenfolge, einzelnes Entfernen, gespeicherte Layoutdaten sowie private Akkordeon-Themen geprüft. Die Veröffentlichung erfolgt über den regulären GitHub-Deployment-Workflow.
+
+## Reine Seitenübersicht
+
+Die CMS-Seitenübersicht zeigt den gespeicherten Stand als Datenblatt ohne Eingabefeld-Rahmen. Veröffentlichung und Hauptnavigation sind reine Statusangaben und lassen sich ausschließlich im Editor mit der Seite speichern. Inhalt bearbeiten steht als beschriftete Schaltfläche mit Stiftsymbol oben in der Übersicht. Bereichs-ID und Löschaktion stehen unter Weitere Angaben. Die Sprachwahl ist als Anzeigesprache beschriftet.
+
+Die lokale synthetische Testansicht frontend/tests/workspace-overview.html prüft Darstellung und echten Editor-Aufruf ohne echte Seiten zu verändern. Ihre Vorschau verwendet ausdrücklich Beispieldaten. Desktop- und schmale Darstellung wurden geprüft; die Testansicht gehört nicht zum Produktionsbuild.

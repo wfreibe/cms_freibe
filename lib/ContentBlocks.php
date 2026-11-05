@@ -16,7 +16,10 @@ final class ContentBlocks
     {
         $blocks = $stored === null ? self::defaults() : json_decode($stored, true, 512, JSON_THROW_ON_ERROR);
         if (!is_array($blocks) || !array_is_list($blocks)) throw new RuntimeException('Invalid stored blocks.');
-        return $admin ? $blocks : array_values(array_filter($blocks, static fn($b) => $b['enabled'] === true));
+        if($admin)return $blocks;
+        $blocks=array_values(array_filter($blocks,static fn($b)=>$b['enabled']===true));
+        foreach($blocks as &$block)if($block['type']==='accordion')$block['data']['items']=array_values(array_filter($block['data']['items'],static fn($item)=>($item['enabled']??true)!==false));
+        return $blocks;
     }
 
     public static function normalize($blocks): array
@@ -71,7 +74,7 @@ final class ContentBlocks
                         $id = self::text($item, 'id', 64);
                         if (!preg_match('/^[a-zA-Z0-9_-]{1,64}$/D', $id) || isset($itemIds[$id])) self::fail('Ungültige oder doppelte Akkordeon-ID.');
                         $itemIds[$id] = true;
-                        $clean['items'][] = ['id' => $id, 'title' => self::text($item, 'title', 255), 'html' => HtmlSanitizer::clean(self::text($item, 'html', 50000))];
+                        $clean['items'][] = ['id' => $id, 'title' => self::text($item, 'title', 255), 'html' => HtmlSanitizer::clean(self::text($item, 'html', 50000)), 'enabled'=>self::visible($item)];
                     }
                 }
                 if ($type === 'youtube') {
@@ -93,9 +96,41 @@ final class ContentBlocks
                     $clean['style'] = self::choice($d, 'style', ['link','button'], 'button');
                 }
             }
+            if ($type !== 'legacy' && isset($d['layout'])) {
+                if(!is_array($d['layout']))self::fail('Ungültiger Inhaltsrahmen.');
+                $clean['layout']=self::layout($d['layout']);
+            }
+            if ($type === 'image' && !empty($d['raw_image'])) {
+                $raw=HtmlSanitizer::clean(self::text($d,'raw_image',5000));
+                $doc=new DOMDocument();@$doc->loadHTML('<html><body>'.$raw.'</body></html>');
+                if($doc->getElementsByTagName('img')->length!==1||trim($doc->textContent)!=='')self::fail('Ungültige Bildvorlage.');
+                $clean['raw_image']=$raw;
+            }
+            if ($type === 'slideshow' && isset($d['options'])) {
+                if(!is_array($d['options']))self::fail('Ungültige Slideshow-Einstellungen.');
+                $clean['options']=[
+                    'slide-duration'=>self::number($d['options'],'slide-duration',1000,20000,5000),
+                    'effect-speed'=>self::number($d['options'],'effect-speed',0,5000,800),
+                    'fullscreen'=>self::choice($d['options'],'fullscreen',['true','false'],'false')
+                ];
+            }
             $result[] = ['id' => $block['id'], 'type' => $type, 'enabled' => $block['enabled'], 'data' => $clean];
         }
         return $result;
+    }
+
+
+    private static function visible(array $item): bool { if(isset($item['enabled'])&&!is_bool($item['enabled']))self::fail('Ungültige Themensichtbarkeit.');return $item['enabled']??true; }
+
+    private static function layout(array $d): array
+    {
+        $id=static function($value): bool {return is_string($value)&&preg_match('/^[a-zA-Z0-9_-]{1,64}$/D',$value);};
+        if(!$id($d['group']??null)||!is_string($d['html']??null)||strlen($d['html'])>100000) self::fail('Ungültiger Inhaltsrahmen.');
+        $slots=$d['slots']??null;
+        if(!is_array($slots)||!array_is_list($slots)||count($slots)>50||count(array_unique($slots,SORT_REGULAR))!==count($slots))self::fail('Ungültige Elementpositionen.');
+        foreach($slots as $slot)if(!$id($slot))self::fail('Ungültige Elementposition.');
+        $lead=$d['lead']??'';if($lead!==''&&!$id($lead))self::fail('Ungültiges Seitenbild.');
+        return ['group'=>$d['group'],'html'=>HtmlSanitizer::clean($d['html']),'slots'=>$slots,'lead'=>$lead,'mode'=>self::choice($d,'mode',['original','wide','left','right'],'original')];
     }
 
     public static function youtube(string $value): string

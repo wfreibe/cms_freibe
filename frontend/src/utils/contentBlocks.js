@@ -1,7 +1,6 @@
 export const blockTypes = [
   ['text','Text'], ['image','Bild mit Text'], ['slideshow','Slideshow'],
-  ['accordion','Akkordeon'], ['youtube','YouTube-Video'], ['audio','Audio'], ['link','Link / Schaltfläche'],
-  ['legacy','Bestehender Seiteninhalt']
+  ['accordion','Akkordeon'], ['youtube','YouTube-Video'], ['audio','Audio'], ['link','Link / Schaltfläche']
 ];
 export const imageDefaults = {format:'original',layout:'above',align:'center',width:100,focus_x:50,focus_y:50};
 export const blockId = () => 'b_' + crypto.randomUUID().replaceAll('-','');

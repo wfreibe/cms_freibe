@@ -301,7 +301,8 @@
 }
 
 .cms-workspace-button-primary:hover:not(:disabled) {
-  background: #001730;
+  background: #4ad7d1;
+  color: #001730;
 }
 
 .cms-workspace-button-danger {
@@ -1178,3 +1179,6 @@
 .section-image-layout-settings{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0}.section-image-layout-settings label{display:flex;flex-direction:column;gap:6px;min-width:170px;font-size:12px}.section-image-layout-settings select{padding:9px;border:1px solid #8c9fa9;border-radius:4px;background:white;color:#001730}.section-image-preview.section-image-original{aspect-ratio:auto}.section-image-preview.section-image-original img{height:auto;object-fit:contain}
 
 .cms-workspace-nav-item.is-subpage{padding-left:26px}.cms-workspace-nav-item.is-subpage .cms-workspace-nav-icon{color:#4ad7d1}
+
+/* Saved page overview uses document typography, never input-field styling. */
+.cms-overview-saved{margin:7px 0 0;color:#526875;font-size:12px}.cms-overview-editbar{display:flex;align-items:flex-start;flex-direction:column;gap:10px;margin-bottom:26px}.cms-overview-editbar p{margin:0;color:#526875;font-size:12px;line-height:1.6}.cms-overview-edit{display:inline-flex;gap:10px;align-items:center;justify-content:center;min-height:44px}.cms-overview-facts{margin:0}.cms-overview-facts>div{margin:0 0 24px}.cms-overview-facts dt,.cms-overview-technical dt{font-size:11px;font-weight:700;color:#526875;margin:0 0 6px}.cms-overview-facts dd{margin:0;font-size:14px;line-height:1.7;font-weight:500;color:#14303e;overflow-wrap:anywhere;white-space:pre-line}.cms-overview-facts>.cms-overview-status-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 0;margin:0;border-bottom:1px solid #e4ebee}.cms-overview-status-row dt{margin:0}.cms-overview-status-row+div:not(.cms-overview-status-row){margin-top:24px}.cms-overview-status{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#526875;cursor:default}.cms-overview-status i{display:block;width:6px;height:6px;border-radius:50%;background:#8c9fa9}.cms-overview-status.is-on{color:#14303e}.cms-overview-status.is-on i{background:#117f86}.cms-overview-technical{border-top:1px solid #dce5e9;margin-top:24px;padding-top:16px}.cms-overview-technical summary{font-size:12px;color:#526875;cursor:pointer}.cms-overview-technical dl{margin:16px 0}.cms-overview-technical dd{margin:0}.cms-overview-technical code{font-size:12px;color:#526875;background:none;border:0;padding:0}.cms-overview-technical button{display:inline-flex;align-items:center;gap:8px;min-height:44px}

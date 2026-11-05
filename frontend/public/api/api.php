@@ -192,7 +192,7 @@ function formatSectionWithAccordions(array $section, PDO $db, string $lang, bool
         $section['content'] = '';
         $section['accordions'] = [];
         $section['image_url'] = null;
-        $section['bg_image_url'] = null;
+        if(!array_filter($section['content_blocks'],static fn($b)=>isset($b['data']['layout'])))$section['bg_image_url'] = null;
         $section['contact_info'] = null;
     }
 

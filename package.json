@@ -11,7 +11,7 @@
     "verify-build": "node scripts/verify_build.js",
     "migrate": "php bin/migrate.php",
     "backup": "php bin/backup.php",
-    "test": "node tests/test_design.js && node tests/test_readiness.js && node tests/test_api_routing.js && node tests/test_dompurify.js && node tests/test_slideshow_editor.js && node tests/test_rich_text.js && node tests/test_content_blocks.js && node tests/test_content_block_utils.js && node tests/test_navigation.js && node tests/test_page_urls.js && node tests/test_page_url_utils.js && node tests/test_page_background.js && node tests/test_block_summary.js && node tests/test_legacy_part_removal.js",
+    "test": "node tests/test_design.js && node tests/test_readiness.js && node tests/test_api_routing.js && node tests/test_dompurify.js && node tests/test_slideshow_editor.js && node tests/test_rich_text.js && node tests/test_content_blocks.js && node tests/test_content_block_utils.js && node tests/test_navigation.js && node tests/test_page_urls.js && node tests/test_page_url_utils.js && node tests/test_page_background.js && node tests/test_block_summary.js && node tests/test_legacy_part_removal.js && node tests/test_unified_blocks.js",
     "package:source": "node scripts/package_source.js",
     "package:deploy": "node scripts/package_deploy.js",
     "prebuild": "node scripts/isolation_guard.js",
