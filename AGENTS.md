@@ -398,6 +398,8 @@ Fehlschlagende Tests analysieren und Ursache von Symptom unterscheiden.
 
 Falls ein Test bereits vor der Änderung fehlschlug und dies belegbar ist, entsprechend dokumentieren.
 
+Inhaltsvergleiche mit den ursprünglichen Seed-Inhalten ausschließlich gegen eine isolierte Testdatenbank ausführen. Bearbeitete lokale CMS-Inhalte nicht als unveränderte Testdaten voraussetzen und für Tests weder zurücksetzen noch mit Seed-Daten überschreiben.
+
 ---
 
 ## 16. Externe Systeme
@@ -574,8 +576,16 @@ Bevorzuge stets eine kleine, belegbar korrekte Änderung gegenüber einer große
 - Temporäre Dateien niemals im Webroot ablegen. Liegt das Repository unter einem Webroot, das systemweite temporäre Verzeichnis verwenden.
 - Keine Secrets oder lokalen Konfigurationen committen. Bestehende Produktionsdatenbanken niemals durch Build, Tests oder Deployment überschreiben.
 
+## Verbindliche Ergänzung: CMS-Weiterentwicklung
+
+- Bestehende Seiteninhalte und Layouts bei Änderungen erhalten, sofern der Auftrag keine Anpassung vorsieht. Alte Inhalte beim Öffnen nur im Editor-Entwurf in die gemeinsame Elementliste überführen; erst das ausdrückliche Speichern durch den Redakteur darf diese Umstellung dauerhaft ablegen. Keine automatische Massenumstellung beim Laden oder Deployment einführen.
+- Bei neuen oder geänderten Inhaltselementen Editor, Datenmodell, serverseitige Validierung und HTML-Bereinigung sowie Vorschau und öffentliche Darstellung gemeinsam berücksichtigen. Reihenfolge, Sichtbarkeit und einzelnes Entfernen müssen konsistent funktionieren; Inhaltsänderungen werden mit der Seite gespeichert. Sofortige Datei-Uploads sind davon getrennt zu behandeln.
+- Für die ungespeicherte Inhaltsvorschau und die öffentliche Webseite dieselben Darstellungskomponenten verwenden. Keine getrennten Implementierungen desselben Inhaltselements aufbauen. Den Erhalt bestehender Texte, Bildzuordnungen und Layouts bei Änderungen an der Übernahme oder Darstellung gezielt prüfen.
+
 ## Projektdokumentation
 
-Die technische Architektur, CMS-Funktionen, Datenhaltung und der Deployment-Prozess sind in [docs/TECHNIK_UND_DEPLOYMENT.md](docs/TECHNIK_UND_DEPLOYMENT.md) beschrieben. Weitere Einzelheiten stehen in [docs/GITHUB_DEPLOYMENT.md](docs/GITHUB_DEPLOYMENT.md) und [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Die [README.md](README.md) bietet den Einstieg zu Frontend, Backend und CMS-Funktionen. Die technische Architektur, Datenhaltung und der Deployment-Prozess sind in [docs/TECHNIK_UND_DEPLOYMENT.md](docs/TECHNIK_UND_DEPLOYMENT.md) beschrieben. Bedienung und Datenmodell der Inhaltselemente stehen in [docs/INHALTSBAUSTEINE.md](docs/INHALTSBAUSTEINE.md). Weitere Einzelheiten zum Hosting stehen in [docs/GITHUB_DEPLOYMENT.md](docs/GITHUB_DEPLOYMENT.md) und [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+Bei neuen oder geänderten CMS-Funktionen die betroffenen Beschreibungen in README und Fachdokumentation im selben Auftrag aktualisieren. Technische Details dort pflegen und in dieser Datei auf die verbindlichen Arbeitsregeln beschränken.
 
 Für die tatsächlich eingerichteten Deployment-Auslöser und Schritte ist `.github/workflows/deploy.yml` zusammen mit den dort aufgerufenen Skripten maßgeblich. In der Dokumentation gekennzeichnete Vorschläge gelten erst nach ihrer ausdrücklichen Beauftragung und Umsetzung.
